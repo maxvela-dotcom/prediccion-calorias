@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>Plataforma · Predicción de Calorías</title>
+  <style>
+    body{font-family:Segoe UI,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;padding:24px}
+    .wrap{max-width:1180px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px 20px;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+    h1{margin:0;font-size:1.4rem} h2{font-size:1.1rem}
+    .muted{color:#94a3b8;font-size:.9rem}
+    .grid{display:grid;grid-template-columns:1fr 1.35fr;gap:20px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:18px;margin-bottom:20px}
+    label{display:block;font-size:.85rem;color:#94a3b8;margin:10px 0 4px}
+    input,select{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fff}
+    button{margin-top:14px;padding:10px 14px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer;width:100%}
+    button.secondary{background:#334155;margin-top:0;width:auto}
+    button.ghost{background:#0f172a;border:1px solid #334155;width:auto}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.86rem}
+    th,td{padding:9px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}
+    th{color:#94a3b8;font-size:.74rem;text-transform:uppercase}
+    .pill{background:rgba(16,185,129,.2);color:#34d399;padding:3px 10px;border-radius:999px;font-weight:700}
+    .pill.blue{background:rgba(59,130,246,.2);color:#60a5fa}
+    .msg{margin-top:10px;min-height:1.2em;color:#f87171;font-size:.9rem}
+    .ok{color:#34d399}
+    a.btn{color:#fff;text-decoration:none;background:#334155;padding:8px 12px;border-radius:8px}
+    .kpi{font-size:1.6rem;font-weight:800}
+    .kpis{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+    .kpi-box{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px 14px;min-width:140px}
+    .filters{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+    @media(max-width:700px){.filters{grid-template-columns:1fr}}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:520px){.row2{grid-template-columns:1fr}}
+    .hint{background:#0f172a;border:1px dashed #334155;border-radius:8px;padding:10px;font-size:.8rem;color:#94a3b8;margin-top:12px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700}
+    .badge.ok{background:rgba(16,185,129,.2);color:#34d399}
+    .badge.warn{background:rgba(251,191,36,.18);color:#fbbf24}
+    .pager{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .pager button{margin-top:0}
+    .pager button:disabled{opacity:.4;cursor:not-allowed}
+    .pager select{width:auto;padding:6px 8px}
+    .empty{color:#94a3b8;text-align:center;padding:18px}
+    .acciones{display:flex;gap:6px;white-space:nowrap}
+    .acciones button{margin:0;padding:6px 9px;font-size:.78rem;width:auto}
+    button.ver{background:#334155;color:#e2e8f0}
+    button.borrar{background:#7f1d1d;color:#fee2e2}
+    button.restaurar{background:#166534;color:#dcfce7}
+    .calculo{background:#0f172a;border:1px solid #3b82f6;border-radius:10px;padding:14px;margin-top:12px;font-size:.86rem}
+    .calculo[hidden]{display:none}
+    .calculo h3{margin:0 0 8px;font-size:.95rem;color:#93c5fd}
+    .calculo p{margin:6px 0}
+    .calculo code{background:#1e293b;border-radius:5px;padding:2px 6px;color:#bfdbfe}
+    details.hint summary{cursor:pointer;color:#cbd5e1;font-weight:700}
+    details.hint p{margin:8px 0 0}
+    .pill.reg{background:rgba(168,85,247,.2);color:#c4b5fd}
+    .tabla-scroll{max-height:300px;overflow:auto}
+    pre.matrix{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;overflow:auto;font-size:.74rem;color:#bfdbfe;margin:8px 0;line-height:1.4}
+    .matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.matrix-grid{grid-template-columns:1fr}}
+    .ecuacion{background:#0f172a;border:1px solid #3b82f6;border-radius:8px;padding:12px;font-size:1rem;color:#bfdbfe;overflow-x:auto;margin:10px 0}
+    .metricas{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+    .metrica{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px}
+    .metrica .valor{font-size:1.5rem;font-weight:800;color:#60a5fa}
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+    @media(max-width:900px){.chart-grid,.metricas{grid-template-columns:1fr}}
+    .chart-box{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;height:320px}
+    .interp li{margin:7px 0;line-height:1.45}
+    details.analisis{border:1px solid #334155;border-radius:10px;padding:10px 12px;margin-top:12px;background:#0f172a}
+    details.analisis summary{cursor:pointer;font-weight:700;color:#cbd5e1}
+    details.analisis h3{font-size:.95rem;color:#93c5fd;margin:14px 0 6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Plataforma de Predicción de Calorías</h1>
+        <div class="muted">Bienvenido, {{ usuario.nombre_completo }} ({{ usuario.email }})</div>
+        <div class="muted" style="margin-top:6px">
+          Correo:
+          {% if usuario.email_verificado %}
+            <span class="badge ok">Verificado</span>
+          {% else %}
+            <span class="badge warn">No verificado</span>
+            <span>· revisa tu correo; si SMTP no está configurado, el enlace aparece en la consola del servidor.</span>
+          {% endif %}
+        </div>
+      </div>
+      <div><a class="btn" href="/logout">Cerrar sesión</a></div>
+    </header>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2 style="margin-top:0">Nueva predicción de rutina</h2>
+          <p class="muted">
+            Método automático: con <strong>peso, altura, edad y duración</strong> se aplica la
+            <strong>regresión lineal múltiple</strong> entrenada desde el CSV. Si falta altura o edad,
+            se conserva el respaldo <strong>Keytel</strong> (FC/edad/sexo) o <strong>MET × peso × duración</strong>.
+          </p>
+          <form id="form-pred">
+            <label>Tipo de actividad</label>
+            <select id="tipo_actividad" required>
+              {% for a in actividades_met %}
+              <option value="{{ a.nombre }}" data-met="{{ a.met }}">{{ a.nombre }} (MET {{ a.met }})</option>
+              {% endfor %}
+            </select>
+            <label>Duración (minutos)</label>
+            <input type="number" id="duracion_min" step="1" min="1" max="1440" required placeholder="Ej: 45">
+            <label>Altura (cm) · X2 del modelo</label>
+            <input type="number" id="altura_cm" step="0.1" min="100" max="250" placeholder="Ej: 170"
+                   value="{{ usuario.altura_preferida_cm if usuario.altura_preferida_cm is not none else '' }}">
+            <label>MET (ajustable)</label>
+            <input type="number" id="met" step="0.1" min="0.5" max="20" required>
+            <label>FC promedio de la rutina (ppm, opcional)</label>
+            <input type="number" id="fc_promedio" step="1" min="30" max="220" placeholder="Ej: 145">
+            <button type="submit">Calcular y guardar</button>
+          </form>
+          <div id="msg" class="msg"></div>
+          <div class="hint">El peso, edad y sexo se toman de tu perfil. Si cambias el peso aquí abajo, se guarda antes de calcular.</div>
+          <details class="hint" open>
+            <summary>¿Cómo se hace el cálculo?</summary>
+            <p><strong>Regresión (principal):</strong> <code>Ŷ = β0 + β1X1 + β2X2 + β3X3 + β4X4</code>, con
+              <code>β = (XᵀX)⁻¹ XᵀY</code> entrenado desde <code>data/dataset_calorias.csv</code>.
+              X1 = peso, X2 = altura, X3 = edad, X4 = minutos. Ver el desglose completo en
+              <strong>Análisis técnico</strong> más abajo.</p>
+            <p><strong>MET (respaldo):</strong> <code>calorías = MET × peso_kg × (duración_min / 60)</code>. Ejemplo: 8 MET × 70 kg × (30 / 60) h = 280 kcal.</p>
+            <p><strong>Keytel:</strong> usa tu FC promedio, edad y sexo (M/F):
+              <code>((-55.0969 + 0.6309·FC + 0.1988·peso + 0.2017·edad) / 4.184) × minutos</code> para hombres;
+              <code>((-20.4022 + 0.4472·FC - 0.1263·peso + 0.0740·edad) / 4.184) × minutos</code> para mujeres.
+            </p>
+            <p class="muted">Se aplica Keytel solo cuando hay FC promedio, edad y sexo M/F; en caso contrario se usa MET. Cada registro guardado incluye su desglose con la fórmula y los valores sustituidos. Resultado redondeado a 2 decimales; es una estimación educativa, no un diagnóstico.</p>
+          </details>
+          <div class="hint">
+            Catálogo MET <strong>v{{ catalogo_met.version }}</strong> · revisión {{ catalogo_met.revision }}<br>
+            Fuente: {{ catalogo_met.fuente }}.<br>
+            <span class="muted">Estado: referencia educativa pendiente de validación institucional.</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top:0">Mi perfil</h2>
+          <p class="muted">Datos usados para personalizar la estimación (persistidos en SQLite).</p>
+          <form id="form-perfil">
+            <div class="row2">
+              <div>
+                <label>Peso (kg)</label>
+                <input type="number" id="peso_kg" step="0.1" min="1" max="500" placeholder="Ej: 70"
+                       value="{{ usuario.peso_preferido_kg if usuario.peso_preferido_kg is not none else '' }}">
+              </div>
+              <div>
+                <label>Edad (años)</label>
+                <input type="number" id="edad" step="1" min="10" max="120" placeholder="Ej: 21"
+                       value="{{ usuario.edad if usuario.edad is not none else '' }}">
+              </div>
+            </div>
+            <div class="row2">
+              <div>
+                <label>Altura (cm)</label>
+                <input type="number" id="altura" step="0.1" min="100" max="250" placeholder="Ej: 170"
+                       value="{{ usuario.altura_preferida_cm if usuario.altura_preferida_cm is not none else '' }}">
+              </div>
+              <div class="muted" style="align-self:end;padding-bottom:10px">
+                Se guarda como X2 y se usa en la regresión lineal múltiple.
+              </div>
+            </div>
+            <div class="row2">
+              <div>
+                <label>Sexo</label>
+                <select id="sexo">
+                  <option value="" {% if not usuario.sexo %}selected{% endif %}>Sin especificar</option>
+                  <option value="M" {% if usuario.sexo == 'M' %}selected{% endif %}>Masculino</option>
+                  <option value="F" {% if usuario.sexo == 'F' %}selected{% endif %}>Femenino</option>
+                  <option value="OTRO" {% if usuario.sexo == 'OTRO' %}selected{% endif %}>Otro</option>
+                </select>
+              </div>
+              <div>
+                <label>FC de reposo (ppm)</label>
+                <input type="number" id="fc_reposo" step="1" min="30" max="220" placeholder="Ej: 65"
+                       value="{{ usuario.fc_reposo if usuario.fc_reposo is not none else '' }}">
+              </div>
+            </div>
+            <button type="submit" class="ghost">Guardar perfil</button>
+          </form>
+          <div id="msg-perfil" class="msg"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Historial de predicciones</h2>
+        <div class="kpis">
+          <div class="kpi-box"><div class="muted">Registros</div><div class="kpi" id="kpi-total">0</div></div>
+          <div class="kpi-box"><div class="muted">Total estimado</div><div class="kpi" id="kpi-suma">0 kcal</div></div>
+          <div class="kpi-box"><div class="muted">En papelera</div><div class="kpi" id="kpi-papelera">0</div></div>
+        </div>
+        <div class="filters" style="margin-top:14px">
+          <div>
+            <label>Buscar actividad</label>
+            <input type="text" id="filtro-q" placeholder="Ej: correr, yoga...">
+          </div>
+          <div>
+            <label>Actividad contiene</label>
+            <input type="text" id="filtro-act" placeholder="Filtro adicional">
+          </div>
+          <div>
+            <button type="button" class="secondary" id="btn-filtrar">Filtrar</button>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <button type="button" class="secondary" id="btn-exportar">Exportar CSV</button>
+        </div>
+        <div id="msg-historial" class="msg"></div>
+        <div id="detalle-calculo" class="calculo" hidden></div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>Fecha</th><th>Actividad</th><th>Peso</th><th>Altura</th><th>Min</th><th>MET</th><th>FC</th><th>Método</th><th>Calorías</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="tabla-historial"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button type="button" class="secondary" id="btn-prev">&larr; Anterior</button>
+          <span class="muted" id="pagina-info">Sin registros</span>
+          <button type="button" class="secondary" id="btn-next">Siguiente &rarr;</button>
+          <label for="per_page" style="margin:0">Por página</label>
+          <select id="per_page">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" id="seccion-papelera">
+        <h2 style="margin-top:0">Papelera de predicciones</h2>
+        <p class="muted">
+          Al borrar desde el historial, el registro se conserva aquí. Puedes restaurarlo
+          o borrarlo definitivamente.
+        </p>
+        <div style="margin-top:10px">
+          <button type="button" class="secondary" id="btn-recargar-papelera">Actualizar</button>
+          <button type="button" class="borrar" id="btn-vaciar-papelera" style="width:auto;margin-left:8px">Vaciar papelera</button>
+        </div>
+        <div id="msg-papelera" class="msg"></div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>Fecha registro</th><th>Actividad</th><th>Calorías</th><th>Eliminado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="tabla-papelera"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button type="button" class="secondary" id="btn-pap-prev">&larr; Anterior</button>
+          <span class="muted" id="pap-info">Sin registros</span>
+          <button type="button" class="secondary" id="btn-pap-next">Siguiente &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="seccion-analisis">
+      <h2 style="margin-top:0">Análisis técnico · Regresión lineal múltiple</h2>
+      <p class="muted">
+        Dataset cargado desde <code>data/dataset_calorias.csv</code>:
+        X1 peso (kg), X2 altura (cm), X3 edad (años), X4 minutos; Y calorías (kcal).
+        Modelo entrenado con la ecuación normal <code>β = (XᵀX)⁻¹ XᵀY</code> usando NumPy.
+      </p>
+      <div id="msg-analisis" class="msg"></div>
+
+      <details class="analisis" open>
+        <summary>1. Vista previa del dataset y análisis estadístico</summary>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>X1 (kg)</th><th>X2 (cm)</th><th>X3 (años)</th><th>X4 (min)</th><th>Y (kcal)</th></tr></thead>
+            <tbody id="tabla-dataset"></tbody>
+          </table>
+        </div>
+        <h3>Estadísticos descriptivos</h3>
+        <div style="overflow:auto">
+          <table>
+            <thead><tr><th>Variable</th><th>Media</th><th>Mediana</th><th>Mínimo</th><th>Máximo</th><th>Desv. típica</th></tr></thead>
+            <tbody id="tabla-estadisticas"></tbody>
+          </table>
+        </div>
+        <p class="muted" id="nota-dataset"></p>
+      </details>
+
+      <details class="analisis" open>
+        <summary>2. Álgebra lineal: dimensiones, X, Xᵀ, Y y β</summary>
+        <div class="muted" id="pasos-modelo"></div>
+        <div class="matrix-grid">
+          <div><h3>Matriz X (con columna de unos)</h3><pre class="matrix" id="matriz-x"></pre></div>
+          <div><h3>Matriz transpuesta Xᵀ</h3><pre class="matrix" id="matriz-xt"></pre></div>
+          <div><h3>Vector Y</h3><pre class="matrix" id="vector-y"></pre></div>
+          <div><h3>Vector β</h3><pre class="matrix" id="vector-beta"></pre></div>
+          <div><h3>XᵀX</h3><pre class="matrix" id="matriz-xtx"></pre></div>
+          <div><h3>XᵀY</h3><pre class="matrix" id="matriz-xty"></pre></div>
+        </div>
+      </details>
+
+      <details class="analisis" open>
+        <summary>3. Ecuación resultante e interpretación de coeficientes</summary>
+        <div class="ecuacion" id="ecuacion-modelo"></div>
+        <p><strong>Con los coeficientes entrenados:</strong> <code id="ecuacion-numerica"></code></p>
+        <ul class="interp" id="interpretacion-modelo"></ul>
+      </details>
+
+      <details class="analisis" open>
+        <summary>4. Métricas de evaluación del modelo</summary>
+        <div class="metricas">
+          <div class="metrica"><div class="muted">MAE</div><div class="valor" id="metrica-mae">—</div><div class="muted">Error absoluto medio (kcal)</div></div>
+          <div class="metrica"><div class="muted">RMSE</div><div class="valor" id="metrica-rmse">—</div><div class="muted">Raíz del error cuadrático medio (kcal)</div></div>
+          <div class="metrica"><div class="muted">R²</div><div class="valor" id="metrica-r2">—</div><div class="muted">Coeficiente de determinación</div></div>
+        </div>
+      </details>
+
+      <details class="analisis" open>
+        <summary>5. Gráficas de interpretación</summary>
+        <div class="chart-grid">
+          <div class="chart-box"><canvas id="chart-real-predicho"></canvas></div>
+          <div class="chart-box"><canvas id="chart-residuos"></canvas></div>
+          <div class="chart-box"><canvas id="chart-impacto"></canvas></div>
+        </div>
+        <p class="muted">Izquierda: Y real frente a Ŷ predicho (la recta roja es la predicción perfecta). Centro: residuos frente a la predicción. Derecha: peso de cada variable según su coeficiente β.</p>
+      </details>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='chart.umd.min.js') }}"></script>
+  <script>
+    const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+
+    async function apiFetch(url, options = {}) {
+      const opts = Object.assign({}, options);
+      opts.headers = Object.assign({}, options.headers || {});
+      const method = (opts.method || 'GET').toUpperCase();
+      if (method !== 'GET') opts.headers['X-CSRF-Token'] = CSRF;
+      return fetch(url, opts);
+    }
+
+    const sel = document.getElementById('tipo_actividad');
+    const metInput = document.getElementById('met');
+    function syncMet(){ metInput.value = sel.options[sel.selectedIndex].dataset.met; }
+    sel.addEventListener('change', syncMet); syncMet();
+
+    const pesoInput = document.getElementById('peso_kg');
+    const alturaInput = document.getElementById('altura');
+    const alturaPredInput = document.getElementById('altura_cm');
+    const edadInput = document.getElementById('edad');
+    const sexoInput = document.getElementById('sexo');
+    const fcReposoInput = document.getElementById('fc_reposo');
+    const msgPerfil = document.getElementById('msg-perfil');
+
+    function perfilPayload(){
+      return {
+        peso_preferido_kg: pesoInput.value === '' ? null : parseFloat(pesoInput.value),
+        altura_preferida_cm: alturaInput.value === '' ? null : parseFloat(alturaInput.value),
+        edad: edadInput.value === '' ? null : parseInt(edadInput.value, 10),
+        sexo: sexoInput.value || null,
+        fc_reposo: fcReposoInput.value === '' ? null : parseFloat(fcReposoInput.value)
+      };
+    }
+
+    async function guardarPerfil(silencioso = false){
+      const res = await apiFetch('/api/perfil', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(perfilPayload())
+      });
+      if (res.status === 401) { window.location.href = '/login'; return false; }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        if (!silencioso) {
+          msgPerfil.textContent = 'Perfil guardado correctamente.';
+          msgPerfil.className = 'msg ok';
+        }
+        return true;
+      }
+      if (!silencioso) {
+        msgPerfil.textContent = data.error || 'No se pudo guardar el perfil.';
+        msgPerfil.className = 'msg';
+      }
+      return false;
+    }
+
+    document.getElementById('form-perfil').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msgPerfil.textContent = '';
+      await guardarPerfil(false);
+    });
+
+    let paginaActual = 1;
+    const detalle = document.getElementById('detalle-calculo');
+    const msgHistorial = document.getElementById('msg-historial');
+    const msgPapelera = document.getElementById('msg-papelera');
+    let paginaPapelera = 1;
+
+    function escapeHtml(valor){
+      return String(valor === null || valor === undefined ? '' : valor).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function mostrarDesglose(item){
+      const d = item.desglose || {};
+      const v = d.valores || {};
+      const resultado = (d.resultado === null || d.resultado === undefined)
+        ? item.calorias_estimadas : d.resultado;
+      const cabecera = `<h3>Desglose del cálculo · registro #${escapeHtml(item.id)} (${escapeHtml(item.tipo_actividad)})</h3>`;
+
+      if (d.metodo === 'REGRESION') {
+        const pasos = (d.pasos || []).map(p => `<li>${escapeHtml(p)}</li>`).join('');
+        const aportes = (d.contribuciones || []).map(c =>
+          `<li><strong>${escapeHtml(c.termino)}</strong>: ${escapeHtml(c.coeficiente)} × ${escapeHtml(c.valor)} = ${escapeHtml(c.aporte)} kcal</li>`
+        ).join('');
+        detalle.innerHTML = `${cabecera}
+          <p><strong>Método:</strong> Regresión lineal múltiple · <code>β = (XᵀX)⁻¹ XᵀY</code></p>
+          <p><strong>Ecuación general:</strong> <code>${escapeHtml(d.ecuacion || d.formula || '')}</code></p>
+          <p><strong>Ecuación entrenada:</strong> <code>${escapeHtml(d.ecuacion_numerica || '')}</code></p>
+          <p><strong>β =</strong> <code>[${(d.beta || []).map(escapeHtml).join(', ')}]</code></p>
+          <p><strong>Datos:</strong> peso ${escapeHtml(v.peso_kg)} kg · altura ${escapeHtml(v.altura_cm)} cm · edad ${escapeHtml(v.edad)} años · duración ${escapeHtml(v.duracion_min)} min</p>
+          <p><strong>Valores sustituidos:</strong> <code>${escapeHtml(d.sustitucion || '')}</code></p>
+          <ol>${pasos}</ol>
+          <p><strong>Aportes de cada término:</strong></p><ul>${aportes}</ul>
+          <p><strong>Resultado:</strong> ${escapeHtml(resultado)} kcal <span class="muted">${escapeHtml(d.nota || '')}</span></p>
+        `;
+      } else {
+        const fc = (v.fc_promedio === null || v.fc_promedio === undefined) ? '—' : escapeHtml(v.fc_promedio);
+        const edad = (v.edad === null || v.edad === undefined) ? '—' : escapeHtml(v.edad);
+        const sexo = v.sexo ? escapeHtml(v.sexo) : '—';
+        detalle.innerHTML = `${cabecera}
+          <p><strong>Método:</strong> ${escapeHtml(d.metodo || item.metodo_calculo)}</p>
+          <p><strong>Fórmula:</strong> <code>${escapeHtml(d.formula || '')}</code></p>
+          <p><strong>Valores sustituidos:</strong> <code>${escapeHtml(d.sustitucion || '')}</code></p>
+          <p><strong>Datos:</strong> peso ${escapeHtml(v.peso_kg)} kg · duración ${escapeHtml(v.duracion_min)} min · MET ${escapeHtml(v.met)} · FC ${fc} · edad ${edad} · sexo ${sexo}</p>
+          <p><strong>Resultado:</strong> ${escapeHtml(resultado)} kcal <span class="muted">${escapeHtml(d.nota || '')}</span></p>
+        `;
+      }
+      detalle.hidden = false;
+      detalle.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    }
+
+    async function verCalculo(id){
+      const res = await apiFetch('/api/calorias/' + encodeURIComponent(id));
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgHistorial.textContent = data.error || 'No se pudo cargar el desglose.';
+        msgHistorial.className = 'msg';
+        return;
+      }
+      msgHistorial.textContent = '';
+      msgHistorial.className = 'msg';
+      mostrarDesglose(data);
+    }
+
+    async function borrarRegistro(id){
+      if (!window.confirm('¿Mover este registro a la papelera? Podrás restaurarlo después.')) return;
+      const res = await apiFetch('/api/calorias/' + encodeURIComponent(id), {method: 'DELETE'});
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgHistorial.textContent = data.error || 'No se pudo borrar el registro.';
+        msgHistorial.className = 'msg';
+        return;
+      }
+      msgHistorial.textContent = data.mensaje || 'Registro movido a la papelera.';
+      msgHistorial.className = 'msg ok';
+      if (!detalle.hidden) { detalle.hidden = true; detalle.innerHTML = ''; }
+      await cargarHistorial(paginaActual);
+      await cargarPapelera(1);
+    }
+
+    document.getElementById('tabla-historial').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-accion]');
+      if (!btn) return;
+      if (btn.dataset.accion === 'ver') verCalculo(btn.dataset.id);
+      if (btn.dataset.accion === 'borrar') borrarRegistro(btn.dataset.id);
+    });
+
+    async function cargarHistorial(pagina = 1){
+      const q = document.getElementById('filtro-q').value.trim();
+      const act = document.getElementById('filtro-act').value.trim();
+      const perPage = document.getElementById('per_page').value || '10';
+      const params = new URLSearchParams({page: String(pagina), per_page: perPage});
+      if (q) params.set('q', q);
+      if (act) params.set('actividad', act);
+      const res = await fetch('/api/calorias?' + params.toString());
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgHistorial.textContent = data.error || 'No se pudo cargar el historial.';
+        msgHistorial.className = 'msg';
+        return;
+      }
+      msgHistorial.textContent = '';
+      msgHistorial.className = 'msg';
+
+      const items = Array.isArray(data.items) ? data.items : [];
+      const tbody = document.getElementById('tabla-historial');
+      tbody.innerHTML = '';
+
+      if (!items.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 10;
+        td.className = 'empty';
+        td.textContent = 'No hay predicciones para los filtros seleccionados.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+
+      items.forEach(it => {
+        const tr = document.createElement('tr');
+        const fc = (it.fc_promedio === null || it.fc_promedio === undefined) ? '—' : escapeHtml(it.fc_promedio);
+        const metodo = it.metodo_calculo === 'REGRESION'
+          ? '<span class="pill reg">Regresión</span>'
+          : (it.metodo_calculo === 'KEYTEL'
+            ? '<span class="pill blue">Keytel</span>'
+            : '<span class="pill">MET</span>');
+        const altura = (it.altura_cm === null || it.altura_cm === undefined) ? '—' : escapeHtml(it.altura_cm);
+        const id = escapeHtml(it.id);
+        tr.innerHTML = `<td>${escapeHtml(it.fecha_registro)}</td><td>${escapeHtml(it.tipo_actividad)}</td><td>${escapeHtml(it.peso_kg)}</td><td>${altura}</td><td>${escapeHtml(it.duracion_min)}</td><td>${escapeHtml(it.met)}</td><td>${fc}</td><td>${metodo}</td><td>${escapeHtml(it.calorias_estimadas)} kcal</td><td><div class="acciones"><button type="button" class="ver" data-accion="ver" data-id="${id}">Ver cálculo</button><button type="button" class="borrar" data-accion="borrar" data-id="${id}">Borrar</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+
+      paginaActual = Number(data.page) || 1;
+      const total = Number(data.total) || 0;
+      const totalPaginas = Number(data.total_pages) || 0;
+      const suma = Number(data.total_calorias) || 0;
+
+      document.getElementById('kpi-total').textContent = total;
+      document.getElementById('kpi-suma').textContent = suma.toFixed(2) + ' kcal';
+      document.getElementById('pagina-info').textContent = total === 0
+        ? 'Sin registros'
+        : `Página ${paginaActual} de ${Math.max(totalPaginas, 1)} · ${total} registro(s)`;
+      document.getElementById('btn-prev').disabled = paginaActual <= 1;
+      document.getElementById('btn-next').disabled = totalPaginas === 0 || paginaActual >= totalPaginas;
+    }
+
+    async function cargarPapelera(pagina = 1){
+      const q = document.getElementById('filtro-q').value.trim();
+      const act = document.getElementById('filtro-act').value.trim();
+      const perPage = document.getElementById('per_page').value || '10';
+      const params = new URLSearchParams({page: String(pagina), per_page: perPage});
+      if (q) params.set('q', q);
+      if (act) params.set('actividad', act);
+      const res = await fetch('/api/calorias/papelera?' + params.toString());
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgPapelera.textContent = data.error || 'No se pudo cargar la papelera.';
+        msgPapelera.className = 'msg';
+        return;
+      }
+      msgPapelera.textContent = '';
+      msgPapelera.className = 'msg';
+
+      const items = Array.isArray(data.items) ? data.items : [];
+      const tbody = document.getElementById('tabla-papelera');
+      tbody.innerHTML = '';
+      if (!items.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.className = 'empty';
+        td.textContent = 'La papelera está vacía.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+
+      items.forEach(it => {
+        const tr = document.createElement('tr');
+        const id = escapeHtml(it.id);
+        tr.innerHTML = `<td>${escapeHtml(it.fecha_registro)}</td><td>${escapeHtml(it.tipo_actividad)}</td><td>${escapeHtml(it.calorias_estimadas)} kcal</td><td>${escapeHtml(it.fecha_eliminacion || '—')}</td><td><div class="acciones"><button type="button" class="ver" data-accion-pap="ver" data-id="${id}">Ver cálculo</button><button type="button" class="restaurar" data-accion-pap="restaurar" data-id="${id}">Restaurar</button><button type="button" class="borrar" data-accion-pap="definitivo" data-id="${id}">Borrar definitivamente</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+
+      paginaPapelera = Number(data.page) || 1;
+      const total = Number(data.total) || 0;
+      const totalPaginas = Number(data.total_pages) || 0;
+      document.getElementById('kpi-papelera').textContent = total;
+      document.getElementById('pap-info').textContent = total === 0
+        ? 'Sin registros'
+        : `Página ${paginaPapelera} de ${Math.max(totalPaginas, 1)} · ${total} registro(s)`;
+      document.getElementById('btn-pap-prev').disabled = paginaPapelera <= 1;
+      document.getElementById('btn-pap-next').disabled = totalPaginas === 0 || paginaPapelera >= totalPaginas;
+    }
+
+    async function restaurarRegistro(id){
+      const res = await apiFetch('/api/calorias/' + encodeURIComponent(id) + '/restaurar', {method: 'POST'});
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgPapelera.textContent = data.error || 'No se pudo restaurar el registro.';
+        msgPapelera.className = 'msg';
+        return;
+      }
+      msgPapelera.textContent = data.mensaje || 'Registro restaurado.';
+      msgPapelera.className = 'msg ok';
+      await cargarPapelera(paginaPapelera);
+      await cargarHistorial(1);
+    }
+
+    async function borrarDefinitivamente(id){
+      if (!window.confirm('¿Borrar definitivamente este registro? No se podrá recuperar.')) return;
+      const res = await apiFetch('/api/calorias/' + encodeURIComponent(id) + '/definitivo', {method: 'DELETE'});
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgPapelera.textContent = data.error || 'No se pudo borrar definitivamente.';
+        msgPapelera.className = 'msg';
+        return;
+      }
+      msgPapelera.textContent = data.mensaje || 'Registro borrado definitivamente.';
+      msgPapelera.className = 'msg ok';
+      await cargarPapelera(paginaPapelera);
+    }
+
+    async function vaciarPapelera(){
+      if (!window.confirm('¿Vaciar la papelera? Se borrarán todos sus registros definitivamente.')) return;
+      const res = await apiFetch('/api/calorias/papelera', {method: 'DELETE'});
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgPapelera.textContent = data.error || 'No se pudo vaciar la papelera.';
+        msgPapelera.className = 'msg';
+        return;
+      }
+      msgPapelera.textContent = data.mensaje || 'Papelera vaciada.';
+      msgPapelera.className = 'msg ok';
+      await cargarPapelera(1);
+    }
+
+    document.getElementById('tabla-papelera').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-accion-pap]');
+      if (!btn) return;
+      if (btn.dataset.accionPap === 'ver') verCalculo(btn.dataset.id);
+      if (btn.dataset.accionPap === 'restaurar') restaurarRegistro(btn.dataset.id);
+      if (btn.dataset.accionPap === 'definitivo') borrarDefinitivamente(btn.dataset.id);
+    });
+    document.getElementById('btn-recargar-papelera').addEventListener('click', () => cargarPapelera(1));
+    document.getElementById('btn-vaciar-papelera').addEventListener('click', vaciarPapelera);
+    document.getElementById('btn-pap-prev').addEventListener('click', () => {
+      if (paginaPapelera > 1) cargarPapelera(paginaPapelera - 1);
+    });
+    document.getElementById('btn-pap-next').addEventListener('click', () => {
+      cargarPapelera(paginaPapelera + 1);
+    });
+    document.getElementById('per_page').addEventListener('change', () => cargarPapelera(1));
+
+    document.getElementById('btn-filtrar').addEventListener('click', () => cargarHistorial(1));
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      if (paginaActual > 1) cargarHistorial(paginaActual - 1);
+    });
+    document.getElementById('btn-next').addEventListener('click', () => {
+      cargarHistorial(paginaActual + 1);
+    });
+    document.getElementById('per_page').addEventListener('change', () => cargarHistorial(1));
+
+    document.getElementById('btn-exportar').addEventListener('click', () => {
+      const q = document.getElementById('filtro-q').value.trim();
+      const act = document.getElementById('filtro-act').value.trim();
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (act) params.set('actividad', act);
+      const url = '/api/calorias/export.csv' + (params.toString() ? ('?' + params.toString()) : '');
+      window.location.href = url;
+    });
+
+    document.getElementById('form-pred').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      msg.textContent = ''; msg.className = 'msg';
+
+      const peso = pesoInput.value === '' ? NaN : parseFloat(pesoInput.value);
+      if (!peso || peso <= 0) {
+        msg.textContent = 'Completa tu peso en el perfil antes de calcular.';
+        return;
+      }
+
+      // Guardar el perfil antes de calcular para que edad/sexo estén actualizados.
+      await guardarPerfil(true);
+
+      const fcValor = document.getElementById('fc_promedio').value;
+      const alturaValor = alturaPredInput.value === '' ? null : parseFloat(alturaPredInput.value);
+      const payload = {
+        tipo_actividad: sel.value,
+        peso_kg: peso,
+        duracion_min: parseFloat(document.getElementById('duracion_min').value),
+        altura_cm: alturaValor,
+        met: parseFloat(metInput.value),
+        fc_promedio: fcValor === '' ? null : parseFloat(fcValor)
+      };
+      const res = await apiFetch('/api/calorias', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        localStorage.setItem('perfil_peso_kg', String(payload.peso_kg));
+        const desglose = data.desglose || {};
+        const metodoCalculo = desglose.metodo || data.metodo_calculo;
+        const metodo = metodoCalculo === 'REGRESION' ? 'Regresión'
+          : (metodoCalculo === 'KEYTEL' ? 'Keytel (FC)' : 'MET');
+        const extra = metodoCalculo === 'REGRESION'
+          ? ` · ${desglose.ecuacion_numerica || ''}` : '';
+        msg.textContent = `Estimación: ${data.calorias_estimadas} kcal · método ${metodo}${extra}. Cálculo: ${desglose.sustitucion || ''}`;
+        msg.className = 'msg ok';
+        document.getElementById('duracion_min').value = '';
+        cargarHistorial(1);
+      } else {
+        msg.textContent = data.error || 'Error al calcular.';
+      }
+    });
+
+    // ----------------------------------------------------------------
+    // Análisis técnico: dataset, matrices, métricas y gráficas
+    // ----------------------------------------------------------------
+    const msgAnalisis = document.getElementById('msg-analisis');
+
+    function matrizTexto(matriz, cabecera, nota){
+      if (!matriz || !matriz.length) return '—';
+      const lineas = matriz.map(fila => fila.map(v => String(v).padStart(10, ' ')).join(' '));
+      return (cabecera ? cabecera + '\n' : '') + lineas.join('\n') + (nota ? '\n\n' + nota : '');
+    }
+
+    function dibujarGraficas(datos){
+      const lienzo = document.getElementById('chart-real-predicho');
+      if (typeof Chart === 'undefined') {
+        msgAnalisis.textContent = 'Chart.js no está disponible; las tablas y métricas sí se muestran.';
+        return;
+      }
+      const graf = datos.graficas || {};
+      const puntos = (graf.real_vs_predicho || []).map(p => ({x: p.x, y: p.y}));
+      const residuos = (graf.residuos || []).map(p => ({x: p.x, y: p.y}));
+      const impacto = graf.impacto || [];
+      const valores = puntos.map(p => p.x).concat(puntos.map(p => p.y));
+      const min = valores.length ? Math.min(...valores) : 0;
+      const max = valores.length ? Math.max(...valores) : 1;
+      const comun = {responsive: true, maintainAspectRatio: false, animation: {duration: 400}};
+
+      new Chart(lienzo, {
+        type: 'scatter',
+        data: {datasets: [
+          {label: 'Y real vs Ŷ', data: puntos, backgroundColor: 'rgba(59,130,246,.75)', pointRadius: 3},
+          {label: 'Y = Ŷ (ideal)', data: [{x: min, y: min}, {x: max, y: max}], showLine: true,
+           borderColor: '#f87171', borderDash: [6, 4], pointRadius: 0, fill: false}
+        ]},
+        options: Object.assign({}, comun, {
+          plugins: {title: {display: true, text: 'Valores reales vs predichos'}},
+          scales: {
+            x: {title: {display: true, text: 'Y real (kcal)'}},
+            y: {title: {display: true, text: 'Ŷ predicho (kcal)'}}
+          }
+        })
+      });
+
+      const xRes = residuos.map(p => p.x);
+      const minRes = xRes.length ? Math.min(...xRes) : 0;
+      const maxRes = xRes.length ? Math.max(...xRes) : 1;
+      new Chart(document.getElementById('chart-residuos'), {
+        type: 'scatter',
+        data: {datasets: [
+          {label: 'Residuo (Y − Ŷ)', data: residuos, backgroundColor: 'rgba(16,185,129,.75)', pointRadius: 3},
+          {label: 'Residuo = 0', data: [{x: minRes, y: 0}, {x: maxRes, y: 0}], showLine: true,
+           borderColor: '#f87171', pointRadius: 0, fill: false}
+        ]},
+        options: Object.assign({}, comun, {
+          plugins: {title: {display: true, text: 'Residuos vs predicción'}},
+          scales: {
+            x: {title: {display: true, text: 'Ŷ predicho (kcal)'}},
+            y: {title: {display: true, text: 'Residuo (kcal)'}}
+          }
+        })
+      });
+
+      new Chart(document.getElementById('chart-impacto'), {
+        type: 'bar',
+        data: {
+          labels: impacto.map(i => i.variable),
+          datasets: [{
+            label: 'β (kcal por unidad)',
+            data: impacto.map(i => i.coeficiente),
+            backgroundColor: ['#60a5fa', '#34d399', '#fbbf24', '#f472b6']
+          }]
+        },
+        options: Object.assign({}, comun, {
+          plugins: {title: {display: true, text: 'Impacto de cada variable'}},
+          scales: {y: {title: {display: true, text: 'Coeficiente β'}}}
+        })
+      });
+    }
+
+    async function cargarAnalisis(){
+      const res = await fetch('/api/calorias/analisis');
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const datos = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msgAnalisis.textContent = datos.error || 'No se pudo cargar el análisis técnico.';
+        msgAnalisis.className = 'msg';
+        return;
+      }
+      msgAnalisis.textContent = '';
+      const ds = datos.dataset || {};
+      const mats = datos.matrices || {};
+
+      document.getElementById('tabla-dataset').innerHTML = (ds.vista_previa || []).map(f =>
+        `<tr><td>${escapeHtml(f.X_1)}</td><td>${escapeHtml(f.X_2)}</td><td>${escapeHtml(f.X_3)}</td><td>${escapeHtml(f.X_4)}</td><td>${escapeHtml(f.Y)}</td></tr>`
+      ).join('');
+      document.getElementById('tabla-estadisticas').innerHTML = (ds.estadisticas || []).map(e =>
+        `<tr><td>${escapeHtml(e.columna)}</td><td>${escapeHtml(e.media)}</td><td>${escapeHtml(e.mediana)}</td><td>${escapeHtml(e.minimo)}</td><td>${escapeHtml(e.maximo)}</td><td>${escapeHtml(e.desviacion)}</td></tr>`
+      ).join('');
+      document.getElementById('nota-dataset').textContent =
+        `${ds.filas || 0} filas · ${ds.archivo || ''}. ${ds.nota || ''}`;
+
+      document.getElementById('pasos-modelo').innerHTML =
+        `<p><strong>${escapeHtml(datos.formula_normal || '')}</strong></p>` +
+        (datos.pasos || []).map(p => `<div>${escapeHtml(p)}</div>`).join('');
+
+      document.getElementById('matriz-x').textContent = matrizTexto(
+        (mats.X || {}).vista_previa, (mats.X || {}).columnas?.join(' | '), (mats.X || {}).nota
+      );
+      document.getElementById('matriz-xt').textContent = matrizTexto(
+        (mats.XT || {}).vista_previa, '5 filas × n columnas', (mats.XT || {}).nota
+      );
+      document.getElementById('vector-y').textContent = matrizTexto(
+        (mats.Y || {}).vista_previa, 'Y'
+      );
+      document.getElementById('vector-beta').textContent = matrizTexto(
+        (mats.beta || {}).vista_previa, (mats.beta || {}).simbolos?.join(' | ')
+      );
+      document.getElementById('matriz-xtx').textContent = matrizTexto((mats.XTX || {}).valores);
+      document.getElementById('matriz-xty').textContent = matrizTexto((mats.XTY || {}).valores);
+
+      document.getElementById('ecuacion-modelo').textContent = datos.ecuacion || '';
+      document.getElementById('ecuacion-numerica').textContent = datos.ecuacion_numerica || '';
+      document.getElementById('interpretacion-modelo').innerHTML = (datos.interpretacion || []).map(i =>
+        `<li><strong>${escapeHtml(i.simbolo)}</strong> (${escapeHtml(i.coeficiente)}): ${escapeHtml(i.texto)}</li>`
+      ).join('');
+
+      const metricas = datos.metricas || {};
+      document.getElementById('metrica-mae').textContent = metricas.MAE ?? '—';
+      document.getElementById('metrica-rmse').textContent = metricas.RMSE ?? '—';
+      document.getElementById('metrica-r2').textContent = metricas.R2 ?? '—';
+
+      dibujarGraficas(datos);
+    }
+
+    cargarHistorial(1);
+    cargarPapelera(1);
+    cargarAnalisis();
+  </script>
+</body>
+</html>

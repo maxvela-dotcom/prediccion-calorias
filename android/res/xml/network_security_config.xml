@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Confía en la CA local de la Escuela UAB además de las CA del sistema.
+    El archivo res/raw/ca_escuela.crt se copia desde src/certs/ca.crt.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/ca_escuela" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

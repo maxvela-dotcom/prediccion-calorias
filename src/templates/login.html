@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión · Predicción de Calorías</title>
+  <style>
+    body{font-family:Segoe UI,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:28px;max-width:420px;width:100%}
+    h1{margin:0 0 6px;font-size:1.5rem} p.sub{color:#94a3b8;margin:0 0 18px}
+    label{display:block;font-size:.85rem;color:#94a3b8;margin:10px 0 4px}
+    input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fff}
+    button{width:100%;margin-top:16px;padding:11px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer}
+    .msg{margin-top:12px;font-size:.9rem;color:#f87171;min-height:1.2em}
+    a{color:#60a5fa}
+    .divider{display:flex;align-items:center;gap:10px;color:#64748b;font-size:.8rem;margin:18px 0 4px}
+    .divider::before,.divider::after{content:"";flex:1;height:1px;background:#334155}
+    .google{display:block;text-align:center;text-decoration:none;background:#ffffff;color:#0f172a;border:1px solid #cbd5e1}
+    button.google:disabled{opacity:.55;cursor:not-allowed}
+    .aviso{font-size:.76rem;line-height:1.35;color:#fbbf24;margin:8px 0 0}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Iniciar sesión</h1>
+    <p class="sub">Accede a la plataforma de predicción de calorías quemadas en tu rutina.</p>
+    <form method="post" action="/login">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Correo electrónico</label>
+      <input type="email" name="email" required>
+      <label>Contraseña</label>
+      <input type="password" name="password" required minlength="8">
+      <button type="submit">Entrar</button>
+    </form>
+
+    <div class="divider">o continúa con</div>
+    {% if google_oauth.configurado %}
+      <a class="google" href="/google/login">Continuar con Google</a>
+    {% else %}
+      <button type="button" class="google" disabled>Continuar con Google</button>
+      <p class="aviso">{{ google_oauth.mensaje }}</p>
+    {% endif %}
+
+    <div class="msg">{{ error or '' }}</div>
+    <p><a href="/recuperar">¿Olvidaste tu contraseña?</a></p>
+    <p>¿No tienes cuenta? <a href="/registro">Crear cuenta</a></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# ============================================================================
+# Requisitos del Starter Kit - Taller Asistido por IA (UAB)
+# Willys_IA: Dependencias oficiales para la arquitectura en Flask
+# ============================================================================
+Flask>=3.0.0
+python-dotenv>=1.0.0
+segno>=1.6.0
+cryptography>=42.0.0
+numpy>=1.26.0
+
+# Google Sign-In: verificación del ID token en el servidor (importación diferida)
+google-auth>=2.4.0
+requests>=2.31.0
+
+# Servidor WSGI de producción (Render.com)
+gunicorn>=21.2.0
+
+# Opcional: descomentar (o ejecutar `pip install redis`) para RATE_LIMIT_BACKEND=redis
+# redis>=5.0.0
+

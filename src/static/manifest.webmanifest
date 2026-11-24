@@ -1,0 +1,26 @@
+{
+  "name": "Asistencias Escuela de Fútbol",
+  "short_name": "Asistencias EF",
+  "description": "Registro de asistencia por QR, avisos de ausencia y cobros mensuales. Funciona con datos guardados en este dispositivo.",
+  "lang": "es-BO",
+  "start_url": "/escuela?modo=local",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

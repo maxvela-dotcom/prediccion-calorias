@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <title>Escuela de Fútbol · Control de Asistencias</title>
+  <style>
+    :root {
+      --verde: #0f766e;
+      --verde-claro: #10b981;
+      --verde-suave: #d1fae5;
+      --oscuro: #0f172a;
+      --gris: #64748b;
+      --gris-claro: #f1f5f9;
+      --borde: #e2e8f0;
+      --ambar: #b45309;
+      --ambar-suave: #fef3c7;
+      --rojo: #b91c1c;
+      --rojo-suave: #fee2e2;
+      --blanco: #ffffff;
+      --sombra: 0 10px 30px rgba(15, 23, 42, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #ecfdf5 0, #f8fafc 260px, #f8fafc 100%);
+      color: var(--oscuro);
+      min-height: 100vh;
+    }
+    header.topbar {
+      background: linear-gradient(120deg, #064e3b, #0f766e 55%, #0d9488);
+      color: var(--blanco);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 6px 20px rgba(6, 78, 59, .25);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: rgba(255,255,255,.15);
+      display: grid; place-items: center; font-size: 26px;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+    .brand h1 { margin: 0; font-size: 21px; letter-spacing: .2px; }
+    .brand p { margin: 2px 0 0; font-size: 12.5px; opacity: .85; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .pill {
+      padding: 6px 12px; border-radius: 999px; font-weight: 600;
+      background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25);
+    }
+    .pill.offline { background: #7f1d1d; }
+    main { max-width: 1240px; margin: 0 auto; padding: 22px 20px 70px; }
+
+    .kpis {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--blanco); border: 1px solid var(--borde);
+      border-radius: 14px; padding: 14px 16px; box-shadow: var(--sombra);
+    }
+    .kpi .label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .7px; color: var(--gris); font-weight: 700; }
+    .kpi .valor { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--verde); }
+    .kpi .valor.ambar { color: var(--ambar); }
+    .kpi .valor.rojo { color: var(--rojo); }
+
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tab {
+      border: 1px solid var(--borde); background: var(--blanco); color: var(--gris);
+      padding: 10px 16px; border-radius: 999px; cursor: pointer;
+      font-weight: 700; font-size: 13.5px; transition: .18s;
+    }
+    .tab:hover { border-color: var(--verde-claro); color: var(--verde); }
+    .tab.active { background: var(--verde); color: var(--blanco); border-color: var(--verde); }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: aparecer .22s ease; }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1.35fr; gap: 18px; align-items: start; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--blanco); border: 1px solid var(--borde);
+      border-radius: 16px; padding: 20px; box-shadow: var(--sombra);
+      margin-bottom: 18px;
+    }
+    .card h2 { margin: 0 0 4px; font-size: 17px; }
+    .card .sub { margin: 0 0 16px; color: var(--gris); font-size: 13px; }
+
+    label { display: block; font-size: 12.5px; font-weight: 700; color: var(--gris); margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--borde);
+      border-radius: 10px; font-size: 14px; background: #fff; color: var(--oscuro);
+      font-family: inherit;
+    }
+    input:focus, select:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
+    .campo { margin-bottom: 12px; }
+    .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    button {
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      border-radius: 10px; border: 1px solid transparent; padding: 10px 16px;
+      cursor: pointer; transition: .18s;
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primario { background: var(--verde); color: #fff; }
+    .btn-primario:hover:not(:disabled) { background: #0b5f59; }
+    .btn-secundario { background: #fff; color: var(--verde); border-color: var(--verde); }
+    .btn-secundario:hover:not(:disabled) { background: var(--verde-suave); }
+    .btn-mini { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+    .btn-peligro { background: var(--rojo-suave); color: var(--rojo); border-color: #fecaca; }
+    .btn-ok { background: var(--verde-suave); color: #065f46; border-color: #a7f3d0; }
+
+    .sesiones-hoy { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .sesion-chip {
+      display: flex; justify-content: space-between; gap: 10px; align-items: center;
+      border: 1px dashed var(--borde); border-radius: 10px; padding: 9px 12px;
+      font-size: 13px; cursor: pointer; background: #fcfdfe;
+    }
+    .sesion-chip:hover { border-color: var(--verde-claro); background: #f0fdfa; }
+    .sesion-chip strong { color: var(--verde); }
+
+    .session-head { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+    .session-meta { color: var(--gris); font-size: 13px; margin: 4px 0 0; }
+    .session-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat {
+      background: var(--gris-claro); border-radius: 12px; padding: 8px 14px; text-align: center; min-width: 78px;
+    }
+    .stat strong { display: block; font-size: 20px; color: var(--verde); }
+    .stat span { font-size: 11px; color: var(--gris); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+    .stat.alerta strong { color: var(--ambar); }
+
+    .scan-box { margin-top: 18px; background: #f8fafc; border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
+    .scan-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .scan-row input { flex: 1; min-width: 180px; }
+    #video { width: 100%; max-width: 420px; border-radius: 12px; margin-top: 12px; background: #000; }
+    .scan-status { font-size: 13px; margin: 10px 0 0; color: var(--gris); min-height: 18px; }
+    .scan-status.ok { color: #047857; font-weight: 700; }
+    .scan-status.error { color: var(--rojo); font-weight: 700; }
+
+    .listas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+    @media (max-width: 700px) { .listas { grid-template-columns: 1fr; } }
+    .lista { border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; }
+    .lista h3 {
+      margin: 0; padding: 10px 14px; font-size: 13px; text-transform: uppercase;
+      letter-spacing: .6px; background: var(--gris-claro); color: var(--gris);
+      display: flex; justify-content: space-between;
+    }
+    .lista ul { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow: auto; }
+    .lista li {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 14px; border-top: 1px solid #f1f5f9; font-size: 13.5px;
+    }
+    .lista li:first-child { border-top: 0; }
+    .metodo {
+      font-size: 10.5px; font-weight: 800; letter-spacing: .5px; padding: 3px 7px;
+      border-radius: 6px; background: var(--verde-suave); color: #065f46;
+    }
+    .metodo.manual { background: #e0e7ff; color: #3730a3; }
+    .vacio { padding: 18px; text-align: center; color: var(--gris); font-size: 13px; }
+
+    .empty-state {
+      text-align: center; padding: 34px 20px; color: var(--gris);
+      border: 2px dashed var(--borde); border-radius: 16px; background: #fcfdfe;
+    }
+    .empty-state .icono { font-size: 34px; margin-bottom: 8px; }
+
+    .aviso {
+      border: 1px solid var(--borde); border-left: 5px solid var(--ambar);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; background: #fffdf7;
+    }
+    .aviso.enviada { border-left-color: var(--verde-claro); background: #f7fefb; opacity: .8; }
+    .aviso-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .aviso-head strong { font-size: 14.5px; }
+    .aviso p { font-size: 13px; color: #475569; margin: 8px 0 12px; line-height: 1.45; }
+    .aviso-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .tabla-wrap { overflow-x: auto; border: 1px solid var(--borde); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+    th { background: var(--gris-claro); color: var(--gris); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .badge { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .badge.pagado { background: var(--verde-suave); color: #065f46; }
+    .badge.pendiente { background: var(--ambar-suave); color: var(--ambar); }
+    .badge.noaplica { background: var(--gris-claro); color: var(--gris); }
+    .badge.beca { background: #ede9fe; color: #5b21b6; }
+
+    .cobros-resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+    .cobros-resumen .kpi .valor { font-size: 21px; }
+
+    .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .filtros input, .filtros select { max-width: 240px; }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(15,23,42,.55);
+      display: grid; place-items: center; padding: 20px; z-index: 50;
+    }
+    .modal[hidden] { display: none; }
+    .modal-card {
+      background: #fff; border-radius: 18px; padding: 22px; max-width: 380px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,.25); text-align: center;
+    }
+    .modal-card img { width: 240px; height: 240px; margin: 10px auto; display: block; }
+    .modal-card code { background: var(--gris-claro); padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+
+    .toast {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+      background: var(--oscuro); color: #fff; padding: 12px 20px; border-radius: 12px;
+      font-size: 13.5px; font-weight: 600; box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      z-index: 60; max-width: 92vw;
+    }
+    .toast[hidden] { display: none; }
+    .toast.error { background: #7f1d1d; }
+    .toast.ok { background: #065f46; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">⚽</div>
+      <div>
+        <h1>Escuela de Fútbol</h1>
+        <p>Registro y control de asistencias · 2 sedes · 3 categorías</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="pill" id="modoApp">Modo compartido</span>
+      <span class="pill" id="usuarioApp">{% if usuario %}{{ usuario.nombre }} · {{ usuario.rol }}{% else %}Demo local{% endif %}</span>
+      {% if usuario %}<a class="btn-mini btn-secundario" href="/escuela/logout" style="text-decoration:none">Salir</a>{% endif %}
+      <button class="btn-mini btn-ok" id="btnInstalar" type="button" hidden>Instalar app</button>
+      <button class="btn-mini btn-peligro" id="btnReiniciar" type="button" hidden>Reiniciar demo</button>
+      <span id="reloj"></span>
+      <span class="pill" id="estadoConexion">En línea</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis">
+      <div class="kpi"><div class="label">Estudiantes activos</div><div class="valor" id="kpiEstudiantes">—</div></div>
+      <div class="kpi"><div class="label">Sesiones hoy</div><div class="valor" id="kpiSesiones">—</div></div>
+      <div class="kpi"><div class="label">Presentes hoy</div><div class="valor" id="kpiPresentes">—</div></div>
+      <div class="kpi"><div class="label">Ausentes hoy</div><div class="valor ambar" id="kpiAusentes">—</div></div>
+      <div class="kpi"><div class="label">Avisos pendientes</div><div class="valor ambar" id="kpiAvisos">—</div></div>
+      <div class="kpi"><div class="label">Por cobrar (Bs)</div><div class="valor rojo" id="kpiPendiente">—</div></div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="sesion">Sesión y asistencia</button>
+      <button class="tab" data-tab="avisos">Avisos a padres</button>
+      {% if not usuario or usuario.rol == "ADMIN" %}
+      <button class="tab" data-tab="cobros">Cobros del mes</button>
+      {% endif %}
+      <button class="tab" data-tab="estudiantes">Estudiantes y QR</button>
+      {% if usuario and usuario.rol == "ADMIN" %}
+      <button class="tab" data-tab="altas">Altas y cuentas</button>
+      {% endif %}
+    </nav>
+
+    <!-- ================= SESIÓN ================= -->
+    <section class="panel active" id="panel-sesion">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Abrir sesión de entrenamiento</h2>
+          <p class="sub">Selecciona sede, categoría y horario. Si la sesión ya existe, se reutiliza.</p>
+          <form id="formSesion">
+            <div class="campo">
+              <label for="selectSede">Sede</label>
+              <select id="selectSede" required></select>
+            </div>
+            <div class="campo">
+              <label for="selectCategoria">Categoría</label>
+              <select id="selectCategoria" required></select>
+            </div>
+            <div class="fila">
+              <div class="campo">
+                <label for="inputFecha">Fecha</label>
+                <input type="date" id="inputFecha" required>
+              </div>
+              <div class="campo">
+                <label for="inputHora">Hora</label>
+                <input type="time" id="inputHora" value="16:00" required>
+              </div>
+            </div>
+            <div class="campo">
+              <label for="inputEntrenador">Entrenador</label>
+              <input type="text" id="inputEntrenador" placeholder="Ej. Prof. Ramiro Salazar" minlength="3" required>
+            </div>
+            <button type="submit" class="btn-primario" style="width:100%">Abrir sesión</button>
+          </form>
+          <div style="margin-top:18px">
+            <label>Sesiones de hoy</label>
+            <div class="sesiones-hoy" id="sesionesHoy"></div>
+          </div>
+        </div>
+
+        <div id="panelSesion">
+          <div class="empty-state" id="sinSesion">
+            <div class="icono">📋</div>
+            <strong>Aún no hay una sesión abierta</strong>
+            <p>Abre una sesión o selecciona una de las de hoy para comenzar a registrar.</p>
+          </div>
+
+          <div class="card" id="cardSesion" hidden>
+            <div class="session-head">
+              <div>
+                <h2 id="sesionTitulo">Sesión</h2>
+                <p class="session-meta" id="sesionMeta"></p>
+              </div>
+              <div class="session-stats">
+                <div class="stat"><strong id="statPresentes">0</strong><span>Presentes</span></div>
+                <div class="stat alerta"><strong id="statAusentes">0</strong><span>Ausentes</span></div>
+                <div class="stat"><strong id="statAvisos">0</strong><span>Avisos</span></div>
+              </div>
+            </div>
+
+            <div class="scan-box">
+              <div class="scan-row">
+                <button class="btn-primario" id="btnCamara" type="button">📷 Escanear QR</button>
+                <input type="text" id="inputToken" placeholder="Código QR (EF-...) o ID del alumno">
+                <button class="btn-secundario" id="btnManual" type="button">Registrar</button>
+              </div>
+              <video id="video" hidden playsinline></video>
+              <p class="scan-status" id="scanStatus">El entrenador escanea el QR del alumno al llegar. Si falla, marca al alumno en la lista de ausentes.</p>
+            </div>
+
+            <div class="listas">
+              <div class="lista">
+                <h3>Presentes <span id="contPresentes">0</span></h3>
+                <ul id="listaPresentes"></ul>
+              </div>
+              <div class="lista">
+                <h3>Ausentes <span id="contAusentes">0</span></h3>
+                <ul id="listaAusentes"></ul>
+              </div>
+            </div>
+
+            <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap">
+              <button class="btn-secundario" id="btnGenerarAvisos" type="button">Generar avisos de ausencia</button>
+              <button class="btn-ok" id="btnVerAvisos" type="button">Ver avisos pendientes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AVISOS ================= -->
+    <section class="panel" id="panel-avisos">
+      <div class="card">
+        <h2>Avisos de ausencia</h2>
+        <p class="sub">El sistema avisa al administrador al terminar el entrenamiento. El administrador copia el mensaje y contacta al padre. Al enviarlo, lo marca como enviado.</p>
+        <div id="listaAvisos"></div>
+      </div>
+    </section>
+
+    <!-- ================= COBROS ================= -->
+    {% if not usuario or usuario.rol == "ADMIN" %}
+    <section class="panel" id="panel-cobros">
+      <div class="card">
+        <h2>Cobros del mes</h2>
+        <p class="sub">Regla: 0 asistencias = 0 Bs. Una o más asistencias = tarifa completa de la categoría. Becados no pagan.</p>
+        <div class="filtros">
+          <div style="flex:1">
+            <label for="periodoCobros">Periodo</label>
+            <input type="month" id="periodoCobros">
+          </div>
+          <div style="flex:1">
+            <label for="buscarCobros">Buscar alumno</label>
+            <input type="text" id="buscarCobros" placeholder="Nombre del estudiante">
+          </div>
+        </div>
+        <div class="cobros-resumen" id="resumenCobros"></div>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Estudiante</th><th>Categoría</th><th>Sede</th>
+                <th>Asistencias</th><th>Monto</th><th>Estado</th><th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCobros"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= ESTUDIANTES ================= -->
+    <section class="panel" id="panel-estudiantes">
+      <div class="card">
+        <h2>Estudiantes y códigos QR</h2>
+        <p class="sub">Cada alumno tiene un QR único. Puedes mostrarlo, descargarlo o imprimirlo para entregarlo al padre.</p>
+        <div class="filtros">
+          <input type="text" id="buscarEstudiantes" placeholder="Buscar por nombre">
+          <select id="filtroSede"></select>
+          <select id="filtroCategoria"></select>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr><th>Estudiante</th><th>Categoría</th><th>Sede</th><th>Beca</th><th>QR</th><th>Acción</th></tr>
+            </thead>
+            <tbody id="tablaEstudiantes"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ALTAS Y CUENTAS ================= -->
+    {% if usuario and usuario.rol == "ADMIN" %}
+    <section class="panel" id="panel-altas">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Nuevo alumno</h2>
+          <p class="sub">Registra al alumno manualmente y, si quieres, crea su cuenta para que consulte su QR, asistencias y cobro.</p>
+          <form id="formAlumno">
+            <div class="campo">
+              <label for="alumnoNombre">Nombre completo</label>
+              <input id="alumnoNombre" placeholder="Ej. Mateo Quispe" minlength="3" required>
+            </div>
+            <div class="fila">
+              <div class="campo">
+                <label for="alumnoSede">Sede</label>
+                <select id="alumnoSede" required></select>
+              </div>
+              <div class="campo">
+                <label for="alumnoCategoria">Categoría</label>
+                <select id="alumnoCategoria" required></select>
+              </div>
+            </div>
+            <div class="campo">
+              <label style="display:flex;align-items:center;gap:8px;font-weight:600;color:#0f172a">
+                <input type="checkbox" id="alumnoBecado" style="width:auto">
+                Becado (no paga mensualidad)
+              </label>
+            </div>
+            <p class="sub" style="margin:16px 0 8px">Cuenta de acceso del alumno (opcional)</p>
+            <div class="fila">
+              <div class="campo">
+                <label for="alumnoUsuario">Usuario</label>
+                <input id="alumnoUsuario" placeholder="Ej. mateo.quispe" autocomplete="off">
+              </div>
+              <div class="campo">
+                <label for="alumnoClave">Contraseña</label>
+                <input id="alumnoClave" type="password" minlength="6" placeholder="Mínimo 6" autocomplete="new-password">
+              </div>
+            </div>
+            <button class="btn-primario" type="submit" style="width:100%">Registrar alumno</button>
+          </form>
+        </div>
+
+        <div>
+          <div class="card">
+            <h2>Cuenta de personal</h2>
+            <p class="sub">Administradores ven todo; entrenadores registran asistencia y avisos, sin cobros.</p>
+            <form id="formPersonal">
+              <div class="campo">
+                <label for="personalNombre">Nombre completo</label>
+                <input id="personalNombre" placeholder="Ej. Prof. Ramiro Salazar" minlength="3" required>
+              </div>
+              <div class="fila">
+                <div class="campo">
+                  <label for="personalUsuario">Usuario</label>
+                  <input id="personalUsuario" placeholder="Ej. ramiro" autocomplete="off" required>
+                </div>
+                <div class="campo">
+                  <label for="personalClave">Contraseña</label>
+                  <input id="personalClave" type="password" minlength="6" required autocomplete="new-password">
+                </div>
+              </div>
+              <div class="campo">
+                <label for="personalRol">Rol</label>
+                <select id="personalRol">
+                  <option value="ENTRENADOR">Entrenador</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+              <button class="btn-primario" type="submit" style="width:100%">Crear cuenta de personal</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Sedes y categorías</h2>
+            <p class="sub">Agrega sedes o categorías con su tarifa mensual.</p>
+            <form id="formSede" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <input id="sedeNombre" placeholder="Nombre de la sede" minlength="3" required style="flex:1;min-width:160px">
+              <button class="btn-secundario" type="submit">Agregar sede</button>
+            </form>
+            <form id="formCategoria" style="display:flex;gap:8px;flex-wrap:wrap">
+              <input id="categoriaNombre" placeholder="Categoría" minlength="2" required style="flex:1;min-width:120px">
+              <input id="categoriaPrecio" type="number" min="1" step="0.01" placeholder="Bs/mes" required style="width:110px">
+              <button class="btn-secundario" type="submit">Agregar categoría</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Respaldo y HTTPS</h2>
+            <p class="sub">Guarda una copia de la base y descarga el certificado para instalar la PWA en los celulares.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <a class="btn-secundario" href="/escuela/respaldo" style="text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:700">Descargar respaldo (.db)</a>
+              <a class="btn-secundario" href="/ca.crt" style="text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:700">Descargar certificado CA</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Cuentas creadas</h2>
+        <p class="sub">Puedes cambiar la contraseña de cualquier cuenta. Las cuentas de alumnos quedan vinculadas a su registro.</p>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Alumno asociado</th><th>Acción</th></tr>
+            </thead>
+            <tbody id="tablaCuentas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <div class="modal" id="modalQR" hidden>
+    <div class="modal-card">
+      <h2 style="margin-top:0">Código QR del alumno</h2>
+      <p id="qrNombre" style="color:#64748b;margin:4px 0 0"></p>
+      <img id="qrImagen" alt="Código QR del estudiante">
+      <p><code id="qrToken"></code></p>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <a id="qrEnlace" class="btn-secundario" style="text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:700" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn-primario" id="btnCerrarQR" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/static/vendor/qrcode.js"></script>
+  <script src="/static/escuela_local.js"></script>
+  <script>
+    // Willys_IA: modo local = datos en el dispositivo (IndexedDB), sin servidor.
+    // Se activa al instalar la PWA o con ?modo=local para probarlo en el navegador.
+    const MODO_LOCAL =
+      new URLSearchParams(location.search).get("modo") === "local" ||
+      ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+       navigator.standalone === true) && !{{ 'true' if usuario else 'false' }};
+    const USUARIO = {{ usuario|tojson }};
+    let eventoInstalacion = null;
+
+    const estado = {
+      contexto: null,
+      sesion: null,
+      periodo: "",
+      estudiantes: [],
+      cobros: []
+    };
+    const COLA_KEY = "ef_cola_asistencia";
+    let videoStream = null;
+    let detectorQR = null;
+    let timerScan = null;
+
+    // ---------------- Utilidades ----------------
+    function esc(texto) {
+      return String(texto == null ? "" : texto)
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+    }
+    function toast(mensaje, tipo) {
+      const el = document.getElementById("toast");
+      el.textContent = mensaje;
+      el.className = "toast " + (tipo || "ok");
+      el.hidden = false;
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => { el.hidden = true; }, 3600);
+    }
+    async function api(ruta, opciones) {
+      if (MODO_LOCAL && window.API_LOCAL && window.API_LOCAL.soporta(ruta)) {
+        return await window.API_LOCAL.llamar(ruta, opciones);
+      }
+      const config = Object.assign({ headers: { "Content-Type": "application/json" } }, opciones || {});
+      let respuesta;
+      try {
+        respuesta = await fetch(ruta, config);
+      } catch (e) {
+        const err = new Error("Sin conexión con el servidor.");
+        err.network = true;
+        throw err;
+      }
+      let datos = {};
+      try { datos = await respuesta.json(); } catch (e) { datos = {}; }
+      if (!respuesta.ok) throw new Error(datos.error || ("Error HTTP " + respuesta.status));
+      return datos;
+    }
+    function actualizarReloj() {
+      document.getElementById("reloj").textContent = new Date().toLocaleString("es-BO", {
+        weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+      });
+    }
+    function actualizarConexion() {
+      const el = document.getElementById("estadoConexion");
+      if (MODO_LOCAL) {
+        el.textContent = navigator.onLine ? "Datos en este dispositivo" : "Sin internet · datos locales";
+        el.className = "pill";
+        return;
+      }
+      const online = navigator.onLine;
+      el.textContent = online ? "En línea" : "Sin conexión";
+      el.className = "pill" + (online ? "" : " offline");
+    }
+
+    // Willys_IA: el servidor ya filtró los datos; la interfaz oculta lo que el rol no usa.
+    function aplicarPermisos() {
+      const rol = USUARIO && USUARIO.rol;
+      if (rol === "ENTRENADOR") {
+        const pestaña = document.querySelector('.tab[data-tab="cobros"]');
+        const panel = document.getElementById("panel-cobros");
+        if (pestaña) pestaña.remove();
+        if (panel) panel.remove();
+      }
+      if (rol === "ADMIN") {
+        document.getElementById("modoApp").textContent = "Compartido · administración";
+      } else if (rol === "ENTRENADOR") {
+        document.getElementById("modoApp").textContent = "Compartido · entrenador";
+      }
+    }
+
+    // ---------------- Contexto ----------------
+    async function cargarContexto() {
+      const datos = await api("/api/escuela/contexto");
+      estado.contexto = datos;
+      estado.estudiantes = datos.estudiantes || [];
+      estado.periodo = datos.periodo_actual;
+      pintarSelects();
+      pintarKPIs(datos.resumen);
+      pintarSesionesHoy(datos.sesiones_hoy);
+      pintarEstudiantes();
+      document.getElementById("periodoCobros").value = datos.periodo_actual;
+      if (datos.sesiones_hoy && datos.sesiones_hoy.length && !estado.sesion) {
+        seleccionarSesion(datos.sesiones_hoy[0].id);
+      }
+    }
+    function pintarSelects() {
+      const sedes = estado.contexto.sedes || [];
+      const categorias = estado.contexto.categorias || [];
+      const opcionesSede = sedes.map(s => `<option value="${s.id}">${esc(s.nombre)}</option>`).join("");
+      const opcionesCat = categorias.map(c => `<option value="${c.id}">${esc(c.nombre)} · ${c.precio_mensual} Bs</option>`).join("");
+      document.getElementById("selectSede").innerHTML = opcionesSede;
+      document.getElementById("selectCategoria").innerHTML = opcionesCat;
+      document.getElementById("filtroSede").innerHTML = `<option value="">Todas las sedes</option>` + opcionesSede;
+      document.getElementById("filtroCategoria").innerHTML = `<option value="">Todas las categorías</option>` + opcionesCat;
+      const altaSede = document.getElementById("alumnoSede");
+      const altaCategoria = document.getElementById("alumnoCategoria");
+      if (altaSede) altaSede.innerHTML = opcionesSede;
+      if (altaCategoria) altaCategoria.innerHTML = opcionesCat;
+    }
+    function pintarKPIs(r) {
+      if (!r) return;
+      document.getElementById("kpiEstudiantes").textContent = r.estudiantes_activos;
+      document.getElementById("kpiSesiones").textContent = r.sesiones_hoy;
+      document.getElementById("kpiPresentes").textContent = r.presentes_hoy;
+      document.getElementById("kpiAusentes").textContent = r.ausentes_hoy;
+      document.getElementById("kpiAvisos").textContent = r.avisos_pendientes;
+      document.getElementById("kpiPendiente").textContent = Number(r.total_pendiente || 0).toFixed(0);
+    }
+    async function refrescarResumen() {
+      try {
+        const r = await api("/api/escuela/resumen");
+        pintarKPIs(r);
+      } catch (e) { /* silencioso */ }
+    }
+    async function refrescarSesionesHoy() {
+      try {
+        const datos = await api("/api/escuela/sesiones?fecha=" + new Date().toISOString().slice(0, 10));
+        pintarSesionesHoy(datos.sesiones || []);
+      } catch (e) { /* silencioso */ }
+    }
+    function pintarSesionesHoy(sesiones) {
+      const cont = document.getElementById("sesionesHoy");
+      if (!sesiones || !sesiones.length) {
+        cont.innerHTML = `<div class="vacio">No hay sesiones registradas para hoy. Abre una con el formulario.</div>`;
+        return;
+      }
+      cont.innerHTML = sesiones.map(s => `
+        <div class="sesion-chip" data-id="${s.id}">
+          <span><strong>${esc(s.hora)}</strong> · ${esc(s.categoria)} · ${esc(s.sede)}</span>
+          <span style="color:#64748b">${esc(s.entrenador)}</span>
+        </div>`).join("");
+      cont.querySelectorAll(".sesion-chip").forEach(chip => {
+        chip.addEventListener("click", () => seleccionarSesion(Number(chip.dataset.id)));
+      });
+    }
+
+    // ---------------- Sesión ----------------
+    async function abrirSesion(evento) {
+      evento.preventDefault();
+      const payload = {
+        sede_id: document.getElementById("selectSede").value,
+        categoria_id: document.getElementById("selectCategoria").value,
+        fecha: document.getElementById("inputFecha").value,
+        hora: document.getElementById("inputHora").value,
+        entrenador: document.getElementById("inputEntrenador").value
+      };
+      try {
+        const datos = await api("/api/escuela/sesiones", { method: "POST", body: JSON.stringify(payload) });
+        toast(datos.mensaje + ": " + datos.sesion.categoria + " · " + datos.sesion.sede, "ok");
+        await refrescarSesionesHoy();
+        await seleccionarSesion(datos.sesion.id);
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function seleccionarSesion(id) {
+      try {
+        const datos = await api("/api/escuela/sesiones/" + id);
+        estado.sesion = datos;
+        pintarSesion();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    function pintarSesion() {
+      if (!estado.sesion) return;
+      const s = estado.sesion.sesion;
+      document.getElementById("sinSesion").hidden = true;
+      document.getElementById("cardSesion").hidden = false;
+      document.getElementById("sesionTitulo").textContent = s.categoria + " · " + s.sede;
+      document.getElementById("sesionMeta").textContent =
+        s.fecha + " · " + s.hora + " · Entrenador: " + s.entrenador;
+      document.getElementById("statPresentes").textContent = estado.sesion.stats.presentes;
+      document.getElementById("statAusentes").textContent = estado.sesion.stats.ausentes;
+      document.getElementById("statAvisos").textContent = estado.sesion.stats.avisos_pendientes;
+      document.getElementById("contPresentes").textContent = estado.sesion.stats.presentes;
+      document.getElementById("contAusentes").textContent = estado.sesion.stats.ausentes;
+
+      const presentes = document.getElementById("listaPresentes");
+      presentes.innerHTML = estado.sesion.presentes.length
+        ? estado.sesion.presentes.map(p => `
+            <li>
+              <span>${esc(p.estudiante)}</span>
+              <span class="metodo ${p.metodo === "MANUAL" ? "manual" : ""}">${esc(p.metodo)}</span>
+            </li>`).join("")
+        : `<li class="vacio">Todavía no hay presentes.</li>`;
+
+      const ausentes = document.getElementById("listaAusentes");
+      ausentes.innerHTML = estado.sesion.ausentes.length
+        ? estado.sesion.ausentes.map(a => `
+            <li>
+              <span>${esc(a.estudiante)}</span>
+              <button class="btn-mini btn-ok" data-id="${a.estudiante_id}" type="button">Marcar presente</button>
+            </li>`).join("")
+        : `<li class="vacio">Todos los alumnos están presentes. 🎉</li>`;
+      ausentes.querySelectorAll("button[data-id]").forEach(btn => {
+        btn.addEventListener("click", () => registrarEstudiante(Number(btn.dataset.id)));
+      });
+    }
+
+    // ---------------- Asistencia ----------------
+    async function registrarToken(token) {
+      if (!estado.sesion) { toast("Primero abre una sesión.", "error"); return; }
+      const limpio = String(token || "").trim();
+      if (!limpio) { toast("Escribe o escanea un código QR.", "error"); return; }
+      await registrarAsistencia({ qr_token: limpio, metodo: "QR" });
+    }
+    async function registrarEstudiante(estudianteId) {
+      if (!estado.sesion) { toast("Primero abre una sesión.", "error"); return; }
+      await registrarAsistencia({ estudiante_id: estudianteId, metodo: "MANUAL" });
+    }
+    async function registrarAsistencia(payload) {
+      const sesionId = estado.sesion.sesion.id;
+      try {
+        const datos = await enviarConCola(sesionId, payload);
+        if (datos.offline) {
+          toast("Sin conexión: el registro quedó guardado y se enviará después.", "error");
+          return;
+        }
+        toast(datos.mensaje + ": " + datos.estudiante, "ok");
+        document.getElementById("inputToken").value = "";
+        await seleccionarSesion(sesionId);
+        await refrescarResumen();
+        await refrescarSesionesHoy();
+        await cargarAvisosSiVisible();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function enviarConCola(sesionId, payload) {
+      try {
+        return await api("/api/escuela/sesiones/" + sesionId + "/asistencia", {
+          method: "POST", body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        if (e.network) {
+          encolar(Object.assign({ sesion_id: sesionId }, payload));
+          return { offline: true };
+        }
+        throw e;
+      }
+    }
+
+    // ---------------- Cola offline ----------------
+    function leerCola() {
+      try { return JSON.parse(localStorage.getItem(COLA_KEY) || "[]"); } catch (e) { return []; }
+    }
+    function encolar(item) {
+      const cola = leerCola();
+      cola.push(item);
+      localStorage.setItem(COLA_KEY, JSON.stringify(cola));
+    }
+    async function sincronizarCola() {
+      const cola = leerCola();
+      if (!cola.length) return;
+      const pendientes = [];
+      for (const item of cola) {
+        try {
+          await api("/api/escuela/sesiones/" + item.sesion_id + "/asistencia", {
+            method: "POST", body: JSON.stringify(item)
+          });
+        } catch (e) {
+          pendientes.push(item);
+        }
+      }
+      localStorage.setItem(COLA_KEY, JSON.stringify(pendientes));
+      if (!pendientes.length) {
+        toast("Registros pendientes sincronizados.", "ok");
+        if (estado.sesion) await seleccionarSesion(estado.sesion.sesion.id);
+        await refrescarResumen();
+      }
+    }
+
+    // ---------------- Cámara QR ----------------
+    async function alternarCamara() {
+      if (videoStream) { detenerCamara(); return; }
+      if (!("BarcodeDetector" in window)) {
+        document.getElementById("scanStatus").className = "scan-status error";
+        document.getElementById("scanStatus").textContent =
+          "Este navegador no soporta escaneo QR. Usa la lista de ausentes o escribe el código manualmente.";
+        document.getElementById("inputToken").focus();
+        return;
+      }
+      try {
+        detectorQR = new BarcodeDetector({ formats: ["qr_code"] });
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        const video = document.getElementById("video");
+        video.srcObject = videoStream;
+        video.hidden = false;
+        await video.play();
+        document.getElementById("btnCamara").textContent = "⏹ Detener cámara";
+        document.getElementById("scanStatus").className = "scan-status";
+        document.getElementById("scanStatus").textContent = "Apunta la cámara al QR del alumno...";
+        timerScan = setInterval(escanearFrame, 450);
+      } catch (e) {
+        document.getElementById("scanStatus").className = "scan-status error";
+        document.getElementById("scanStatus").textContent = "No se pudo abrir la cámara: " + e.message;
+      }
+    }
+    async function escanearFrame() {
+      if (!videoStream || !detectorQR) return;
+      try {
+        const codigos = await detectorQR.detect(document.getElementById("video"));
+        if (codigos && codigos.length) {
+          const raw = codigos[0].rawValue;
+          detenerCamara();
+          document.getElementById("scanStatus").className = "scan-status ok";
+          document.getElementById("scanStatus").textContent = "QR leído: " + raw;
+          await registrarToken(raw);
+        }
+      } catch (e) { /* ignorar frames ilegibles */ }
+    }
+    function detenerCamara() {
+      if (timerScan) { clearInterval(timerScan); timerScan = null; }
+      if (videoStream) {
+        videoStream.getTracks().forEach(t => t.stop());
+        videoStream = null;
+      }
+      const video = document.getElementById("video");
+      video.hidden = true;
+      video.srcObject = null;
+      document.getElementById("btnCamara").textContent = "📷 Escanear QR";
+    }
+
+    // ---------------- Avisos ----------------
+    async function generarAvisos() {
+      if (!estado.sesion) { toast("Primero abre una sesión.", "error"); return; }
+      try {
+        const datos = await api("/api/escuela/sesiones/" + estado.sesion.sesion.id + "/avisos", { method: "POST" });
+        toast(`Avisos generados: ${datos.creados} nuevos, ${datos.ya_existian} ya existían.`, "ok");
+        await seleccionarSesion(estado.sesion.sesion.id);
+        await refrescarResumen();
+        await cargarAvisos();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function cargarAvisos() {
+      try {
+        const datos = await api("/api/escuela/avisos?estado=PENDIENTE");
+        pintarAvisos(datos.avisos || []);
+      } catch (e) {
+        document.getElementById("listaAvisos").innerHTML = `<div class="vacio">${esc(e.message)}</div>`;
+      }
+    }
+    function pintarAvisos(avisos) {
+      const cont = document.getElementById("listaAvisos");
+      if (!avisos.length) {
+        cont.innerHTML = `<div class="empty-state"><div class="icono">✅</div><strong>No hay avisos pendientes</strong><p>Genera avisos desde una sesión con alumnos ausentes.</p></div>`;
+        return;
+      }
+      cont.innerHTML = avisos.map(a => `
+        <article class="aviso">
+          <div class="aviso-head">
+            <strong>${esc(a.estudiante)}</strong>
+            <span class="badge pendiente">PENDIENTE</span>
+          </div>
+          <p>${esc(a.mensaje)}</p>
+          <div class="aviso-acciones">
+            <button class="btn-mini btn-secundario" data-copiar="${a.id}" type="button">Copiar mensaje</button>
+            ${USUARIO && USUARIO.rol === "ADMIN"
+              ? `<button class="btn-mini btn-ok" data-enviar="${a.id}" type="button">Marcar como enviado</button>`
+              : ""}
+          </div>
+        </article>`).join("");
+      cont.querySelectorAll("[data-copiar]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const aviso = avisos.find(a => String(a.id) === btn.dataset.copiar);
+          try {
+            await navigator.clipboard.writeText(aviso.mensaje);
+            toast("Mensaje copiado. Ya puedes enviarlo por WhatsApp.", "ok");
+          } catch (e) {
+            toast("No se pudo copiar. Selecciona el texto manualmente.", "error");
+          }
+        });
+      });
+      cont.querySelectorAll("[data-enviar]").forEach(btn => {
+        btn.addEventListener("click", () => marcarAvisoEnviado(Number(btn.dataset.enviar)));
+      });
+    }
+    async function marcarAvisoEnviado(id) {
+      try {
+        await api("/api/escuela/avisos/" + id + "/enviado", { method: "POST" });
+        toast("Aviso marcado como enviado.", "ok");
+        await cargarAvisos();
+        await refrescarResumen();
+        if (estado.sesion) await seleccionarSesion(estado.sesion.sesion.id);
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function cargarAvisosSiVisible() {
+      if (document.getElementById("panel-avisos").classList.contains("active")) await cargarAvisos();
+    }
+
+    // ---------------- Cobros ----------------
+    async function cargarCobros() {
+      const periodo = document.getElementById("periodoCobros").value;
+      if (!periodo) return;
+      try {
+        const datos = await api("/api/escuela/cobros?periodo=" + encodeURIComponent(periodo));
+        estado.cobros = datos.cobros || [];
+        pintarCobros(datos);
+      } catch (e) {
+        document.getElementById("tablaCobros").innerHTML = `<tr><td colspan="7" class="vacio">${esc(e.message)}</td></tr>`;
+      }
+    }
+    function pintarCobros(datos) {
+      const r = datos.resumen;
+      document.getElementById("resumenCobros").innerHTML = `
+        <div class="kpi"><div class="label">Facturado</div><div class="valor">${r.total_facturado.toFixed(0)} Bs</div></div>
+        <div class="kpi"><div class="label">Cobrado</div><div class="valor">${r.total_cobrado.toFixed(0)} Bs</div></div>
+        <div class="kpi"><div class="label">Pendiente</div><div class="valor ambar">${r.total_pendiente.toFixed(0)} Bs</div></div>
+        <div class="kpi"><div class="label">Pagados / Pendientes</div><div class="valor">${r.pagados} / ${r.pendientes}</div></div>
+        <div class="kpi"><div class="label">Becados / Sin asistencia</div><div class="valor">${r.becados} / ${r.sin_asistencia}</div></div>`;
+      pintarTablaCobros();
+    }
+    function pintarTablaCobros() {
+      const filtro = (document.getElementById("buscarCobros").value || "").toLowerCase();
+      const filas = estado.cobros.filter(c => c.nombre.toLowerCase().includes(filtro));
+      const cuerpo = document.getElementById("tablaCobros");
+      if (!filas.length) {
+        cuerpo.innerHTML = `<tr><td colspan="7" class="vacio">No hay estudiantes que coincidan.</td></tr>`;
+        return;
+      }
+      cuerpo.innerHTML = filas.map(c => {
+        const badge = c.estado_pago === "PAGADO" ? "pagado"
+          : c.estado_pago === "PENDIENTE" ? "pendiente" : "noaplica";
+        const etiqueta = c.estado_pago === "NO_APLICA"
+          ? (c.motivo === "BECA" ? "BECA" : "SIN ASIST.") : c.estado_pago;
+        let accion = `<span style="color:#94a3b8">—</span>`;
+        if (c.monto > 0) {
+          accion = c.estado_pago === "PAGADO"
+            ? `<button class="btn-mini btn-secundario" data-pago="${c.estudiante_id}" data-estado="PENDIENTE" type="button">Marcar pendiente</button>`
+            : `<button class="btn-mini btn-ok" data-pago="${c.estudiante_id}" data-estado="PAGADO" type="button">Marcar pagado</button>`;
+        }
+        return `<tr>
+          <td><strong>${esc(c.nombre)}</strong></td>
+          <td>${esc(c.categoria)}</td>
+          <td>${esc(c.sede)}</td>
+          <td>${c.asistencias}</td>
+          <td>${c.monto.toFixed(2)} Bs</td>
+          <td><span class="badge ${badge}">${etiqueta}</span></td>
+          <td>${accion}</td>
+        </tr>`;
+      }).join("");
+      cuerpo.querySelectorAll("[data-pago]").forEach(btn => {
+        btn.addEventListener("click", () => marcarPago(Number(btn.dataset.pago), btn.dataset.estado));
+      });
+    }
+    async function marcarPago(estudianteId, nuevoEstado) {
+      const periodo = document.getElementById("periodoCobros").value;
+      try {
+        await api("/api/escuela/cobros", {
+          method: "POST",
+          body: JSON.stringify({ estudiante_id: estudianteId, periodo, estado: nuevoEstado })
+        });
+        toast("Estado de pago actualizado.", "ok");
+        await cargarCobros();
+        await refrescarResumen();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+
+    // ---------------- Estudiantes ----------------
+    function pintarEstudiantes() {
+      const filtro = (document.getElementById("buscarEstudiantes").value || "").toLowerCase();
+      const sede = document.getElementById("filtroSede").value;
+      const categoria = document.getElementById("filtroCategoria").value;
+      const filas = estado.estudiantes.filter(e =>
+        e.nombre.toLowerCase().includes(filtro) &&
+        (!sede || String(e.sede_id) === sede) &&
+        (!categoria || String(e.categoria_id) === categoria)
+      );
+      const cuerpo = document.getElementById("tablaEstudiantes");
+      if (!filas.length) {
+        cuerpo.innerHTML = `<tr><td colspan="6" class="vacio">No hay estudiantes que coincidan.</td></tr>`;
+        return;
+      }
+      const esAdmin = USUARIO && USUARIO.rol === "ADMIN";
+      cuerpo.innerHTML = filas.map(e => `<tr>
+        <td><strong>${esc(e.nombre)}</strong></td>
+        <td>${esc(e.categoria)}</td>
+        <td>${esc(e.sede)}</td>
+        <td>${e.becado ? `<span class="badge beca">BECADO</span>` : "—"}</td>
+        <td><button class="btn-mini btn-secundario" data-qr="${e.id}" type="button">Ver QR</button></td>
+        <td>${esAdmin ? `<button class="btn-mini btn-peligro" data-baja="${e.id}" type="button">Dar de baja</button>` : "—"}</td>
+      </tr>`).join("");
+      cuerpo.querySelectorAll("[data-qr]").forEach(btn => {
+        btn.addEventListener("click", () => abrirQR(Number(btn.dataset.qr)));
+      });
+      cuerpo.querySelectorAll("[data-baja]").forEach(btn => {
+        btn.addEventListener("click", () => darBajaEstudiante(Number(btn.dataset.baja)));
+      });
+    }
+    async function darBajaEstudiante(id) {
+      const estudiante = estado.estudiantes.find(e => e.id === id);
+      if (!estudiante) return;
+      if (!confirm(`¿Dar de baja a ${estudiante.nombre}? Su historial se conserva.`)) return;
+      try {
+        await api(`/api/escuela/estudiantes/${id}/baja`, { method: "POST" });
+        toast("Alumno dado de baja.", "ok");
+        await cargarContexto();
+        await cargarCuentas();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    function abrirQR(id) {
+      const estudiante = estado.estudiantes.find(e => e.id === id);
+      if (!estudiante) return;
+      document.getElementById("qrNombre").textContent =
+        estudiante.nombre + " · " + estudiante.categoria + " · " + estudiante.sede;
+      document.getElementById("qrToken").textContent = estudiante.qr_token;
+      if (MODO_LOCAL && window.API_LOCAL) {
+        // En modo app el QR se genera en el celular: no hay servidor al que pedirlo.
+        const datosQR = window.API_LOCAL.qrDataURL(estudiante.qr_token);
+        document.getElementById("qrImagen").src = datosQR;
+        document.getElementById("qrEnlace").href = datosQR;
+      } else {
+        const urlQR = "/api/escuela/estudiantes/" + id + "/qr.svg";
+        document.getElementById("qrImagen").src = urlQR;
+        document.getElementById("qrEnlace").href = urlQR;
+      }
+      document.getElementById("modalQR").hidden = false;
+    }
+
+    // ---------------- Altas y cuentas ----------------
+    async function cargarCuentas() {
+      const cuerpo = document.getElementById("tablaCuentas");
+      if (!cuerpo) return;
+      try {
+        const datos = await api("/api/escuela/usuarios");
+        pintarCuentas(datos.cuentas || []);
+      } catch (e) {
+        cuerpo.innerHTML = `<tr><td colspan="5" class="vacio">${esc(e.message)}</td></tr>`;
+      }
+    }
+    function pintarCuentas(cuentas) {
+      const cuerpo = document.getElementById("tablaCuentas");
+      if (!cuerpo) return;
+      if (!cuentas.length) {
+        cuerpo.innerHTML = `<tr><td colspan="5" class="vacio">Todavía no hay cuentas.</td></tr>`;
+        return;
+      }
+      cuerpo.innerHTML = cuentas.map(c => `<tr>
+        <td><strong>${esc(c.usuario)}</strong></td>
+        <td>${esc(c.nombre)}</td>
+        <td><span class="badge ${c.rol === "ADMIN" ? "pagado" : c.rol === "ALUMNO" ? "beca" : "noaplica"}">${esc(c.rol)}</span></td>
+        <td>${esc(c.estudiante || "—")}</td>
+        <td><button class="btn-mini btn-secundario" data-clave="${esc(c.usuario)}" type="button">Cambiar clave</button></td>
+      </tr>`).join("");
+      cuerpo.querySelectorAll("[data-clave]").forEach(btn => {
+        btn.addEventListener("click", () => cambiarClaveCuenta(btn.dataset.clave));
+      });
+    }
+    async function cambiarClaveCuenta(usuario) {
+      const clave = prompt(`Nueva contraseña para "${usuario}" (mínimo 6 caracteres):`);
+      if (clave === null) return;
+      try {
+        await api(`/api/escuela/usuarios/${encodeURIComponent(usuario)}/clave`, {
+          method: "POST", body: JSON.stringify({ clave })
+        });
+        toast("Contraseña actualizada.", "ok");
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function crearAlumno(evento) {
+      evento.preventDefault();
+      const payload = {
+        nombre: document.getElementById("alumnoNombre").value,
+        sede_id: document.getElementById("alumnoSede").value,
+        categoria_id: document.getElementById("alumnoCategoria").value,
+        becado: document.getElementById("alumnoBecado").checked,
+        usuario: document.getElementById("alumnoUsuario").value.trim() || null,
+        clave: document.getElementById("alumnoClave").value || null
+      };
+      try {
+        const datos = await api("/api/escuela/estudiantes", {
+          method: "POST", body: JSON.stringify(payload)
+        });
+        toast(datos.mensaje + ": " + datos.estudiante.nombre + " · QR " + datos.estudiante.qr_token, "ok");
+        document.getElementById("formAlumno").reset();
+        await cargarContexto();
+        await cargarCuentas();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function crearPersonal(evento) {
+      evento.preventDefault();
+      const payload = {
+        nombre: document.getElementById("personalNombre").value,
+        usuario: document.getElementById("personalUsuario").value,
+        clave: document.getElementById("personalClave").value,
+        rol: document.getElementById("personalRol").value
+      };
+      try {
+        const datos = await api("/api/escuela/usuarios", {
+          method: "POST", body: JSON.stringify(payload)
+        });
+        toast(datos.mensaje + ": " + datos.cuenta.usuario + " (" + datos.cuenta.rol + ")", "ok");
+        document.getElementById("formPersonal").reset();
+        await cargarCuentas();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function crearSede(evento) {
+      evento.preventDefault();
+      try {
+        const datos = await api("/api/escuela/sedes", {
+          method: "POST",
+          body: JSON.stringify({ nombre: document.getElementById("sedeNombre").value })
+        });
+        toast(datos.mensaje + ": " + datos.sede.nombre, "ok");
+        document.getElementById("formSede").reset();
+        await cargarContexto();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+    async function crearCategoria(evento) {
+      evento.preventDefault();
+      try {
+        const datos = await api("/api/escuela/categorias", {
+          method: "POST",
+          body: JSON.stringify({
+            nombre: document.getElementById("categoriaNombre").value,
+            precio_mensual: document.getElementById("categoriaPrecio").value
+          })
+        });
+        toast(datos.mensaje + ": " + datos.categoria.nombre + " · " + datos.categoria.precio_mensual + " Bs", "ok");
+        document.getElementById("formCategoria").reset();
+        await cargarContexto();
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    }
+
+    // ---------------- Tabs y eventos ----------------
+    function activarTab(nombre) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === nombre));
+      document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + nombre));
+      if (nombre === "avisos") cargarAvisos();
+      if (nombre === "cobros") cargarCobros();
+      if (nombre === "estudiantes") pintarEstudiantes();
+      if (nombre === "altas") cargarCuentas();
+    }
+
+    function configurarEventos() {
+      document.querySelectorAll(".tab").forEach(t => {
+        t.addEventListener("click", () => activarTab(t.dataset.tab));
+      });
+      document.getElementById("formSesion").addEventListener("submit", abrirSesion);
+      document.getElementById("btnManual").addEventListener("click", () => {
+        registrarToken(document.getElementById("inputToken").value);
+      });
+      document.getElementById("inputToken").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); registrarToken(e.target.value); }
+      });
+      document.getElementById("btnCamara").addEventListener("click", alternarCamara);
+      document.getElementById("btnGenerarAvisos").addEventListener("click", generarAvisos);
+      document.getElementById("btnVerAvisos").addEventListener("click", () => activarTab("avisos"));
+      const periodoCobros = document.getElementById("periodoCobros");
+      if (periodoCobros) periodoCobros.addEventListener("change", cargarCobros);
+      const buscarCobros = document.getElementById("buscarCobros");
+      if (buscarCobros) buscarCobros.addEventListener("input", pintarTablaCobros);
+      document.getElementById("buscarEstudiantes").addEventListener("input", pintarEstudiantes);
+      document.getElementById("filtroSede").addEventListener("change", pintarEstudiantes);
+      document.getElementById("filtroCategoria").addEventListener("change", pintarEstudiantes);
+      const formAlumno = document.getElementById("formAlumno");
+      if (formAlumno) formAlumno.addEventListener("submit", crearAlumno);
+      const formPersonal = document.getElementById("formPersonal");
+      if (formPersonal) formPersonal.addEventListener("submit", crearPersonal);
+      const formSede = document.getElementById("formSede");
+      if (formSede) formSede.addEventListener("submit", crearSede);
+      const formCategoria = document.getElementById("formCategoria");
+      if (formCategoria) formCategoria.addEventListener("submit", crearCategoria);
+      document.getElementById("btnCerrarQR").addEventListener("click", () => {
+        document.getElementById("modalQR").hidden = true;
+        detenerCamara();
+      });
+      document.getElementById("modalQR").addEventListener("click", (e) => {
+        if (e.target.id === "modalQR") document.getElementById("modalQR").hidden = true;
+      });
+      window.addEventListener("online", () => { actualizarConexion(); sincronizarCola(); });
+      window.addEventListener("offline", actualizarConexion);
+
+      // Instalación de la PWA (Chrome guarda el evento y lo dispara aquí).
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        eventoInstalacion = e;
+        document.getElementById("btnInstalar").hidden = false;
+      });
+      document.getElementById("btnInstalar").addEventListener("click", async () => {
+        if (!eventoInstalacion) {
+          toast("Usa el menú del navegador → «Añadir a pantalla de inicio».", "ok");
+          return;
+        }
+        eventoInstalacion.prompt();
+        const resultado = await eventoInstalacion.userChoice;
+        if (resultado.outcome === "accepted") toast("App instalada.", "ok");
+        eventoInstalacion = null;
+        document.getElementById("btnInstalar").hidden = true;
+      });
+
+      if (MODO_LOCAL && window.API_LOCAL) {
+        document.getElementById("btnReiniciar").hidden = false;
+        document.getElementById("btnReiniciar").addEventListener("click", async () => {
+          if (!confirm("¿Borrar los datos de la demo en este dispositivo y crearlos de nuevo?")) return;
+          try {
+            await window.API_LOCAL.reiniciarDemo();
+            location.reload();
+          } catch (e) {
+            toast(e.message, "error");
+          }
+        });
+      }
+    }
+
+    async function iniciar() {
+      actualizarReloj();
+      setInterval(actualizarReloj, 30000);
+      document.getElementById("modoApp").textContent =
+        MODO_LOCAL ? "Modo app · datos locales" : "Compartido · SQLite";
+      aplicarPermisos();
+      actualizarConexion();
+      configurarEventos();
+
+      // El service worker guarda la app para abrirla sin internet.
+      // En http://192.168.x.x Chrome lo bloquea (requiere HTTPS): se ignora el error.
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        const registrar = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
+        if (document.readyState === "complete") registrar();
+        else window.addEventListener("load", registrar);
+      }
+      document.getElementById("inputFecha").value = new Date().toISOString().slice(0, 10);
+      try {
+        await cargarContexto();
+      } catch (e) {
+        toast("No se pudo cargar el contexto: " + e.message, "error");
+      }
+      if (!MODO_LOCAL) await sincronizarCola();
+    }
+
+    document.addEventListener("DOMContentLoaded", iniciar);
+  </script>
+</body>
+</html>

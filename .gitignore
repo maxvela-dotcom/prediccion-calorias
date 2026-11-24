@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de entorno y credenciales (CERO SECRETOS)
+.env
+.env.local
+
+# Reportes de pruebas y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs del servidor (pueden contener datos de acceso)
+*.log
+
+# Base de datos local SQLite
+data/*.db
+data/*.db-journal
+
+# Respaldos de la base
+data/respaldos/
+
+# Certificados locales (las claves privadas NO se comparten)
+src/certs/
+
+# Android: intermedios y clave de firma (NO se comparten)
+android/build/
+android/keystore/
+

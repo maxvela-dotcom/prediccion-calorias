@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UAB · Sistema Monolito Modular (Willys_IA)</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --accent: #d97706;
+      --success: #059669;
+      --danger: #dc2626;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-info h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .header-info p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .badge-uab {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* KPIs Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary-light);
+    }
+
+    .kpi-card.accent::before { background: var(--accent); }
+    .kpi-card.success::before { background: var(--success); }
+
+    .kpi-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .kpi-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* Architecture Visualizer */
+    .arch-banner {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px dashed var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+
+    .arch-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #cbd5e1;
+    }
+
+    .arch-step .num {
+      background: var(--primary-light);
+      color: #fff;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    /* Modules Grid */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    @media (min-width: 1024px) {
+      .modules-grid {
+        grid-template-columns: 1.3fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    button.btn-primary {
+      background: var(--primary-light);
+      color: #fff;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button.btn-primary:hover {
+      background: #2563eb;
+    }
+
+    button.btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.7);
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    tr:hover {
+      background: rgba(51, 65, 85, 0.2);
+    }
+
+    .pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+
+    .pill-activo { background: rgba(5, 150, 105, 0.2); color: #34d399; }
+    .pill-pendiente { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+    .pill-proceso { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .pill-completado { background: rgba(16, 185, 129, 0.25); color: #10b981; }
+    .pill-cancelado { background: rgba(220, 38, 38, 0.2); color: #f87171; }
+
+    .select-estado {
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      width: auto;
+      background: #0f172a;
+      border-radius: 6px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-success { background: var(--success); color: #fff; }
+    .toast-error { background: var(--danger); color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-info">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+          <span class="badge-uab">UAB · Ingeniería de Sistemas</span>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Taller Asistido por IA</span>
+        </div>
+        <h1>Sistema Monolito Modular en Flask</h1>
+        <p>Arquitectura Willys_IA: Controller (Flask) → Service → Repository → Model</p>
+      </div>
+      <div>
+        <span style="font-size: 0.85rem; color: #cbd5e1; background: rgba(255,255,255,0.08); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+          ⚡ Flask 3 + Clean Layers
+        </span>
+      </div>
+    </header>
+
+    <!-- Architecture Visualizer -->
+    <div class="arch-banner">
+      <div class="arch-step"><span class="num">1</span> <strong>Flask Blueprint</strong> (mvp_controller.py / usuario_controller.py)</div>
+      <div style="color: var(--text-muted);">➔</div>
+      <div class="arch-step"><span class="num">2</span> <strong>Service Layer</strong> (mvp_service.py / usuario_service.py)</div>
+      <div style="color: var(--text-muted);">➔</div>
+      <div class="arch-step"><span class="num">3</span> <strong>Repository Layer</strong> (mvp_repository.py / usuario_repository.py)</div>
+      <div style="color: var(--text-muted);">➔</div>
+      <div class="arch-step"><span class="num">4</span> <strong>Model Layer</strong> (mvp_model.py / usuario_model.py)</div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Elementos MVP</div>
+        <div class="kpi-val" id="kpi-total-items">0</div>
+      </div>
+      <div class="kpi-card accent">
+        <div class="kpi-label">Valor / Inversión Acumulada</div>
+        <div class="kpi-val" id="kpi-total-valor">0.00</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">Usuarios del Sistema</div>
+        <div class="kpi-val" id="kpi-total-usuarios">0</div>
+      </div>
+    </div>
+
+    <!-- Modules Grid -->
+    <div class="modules-grid">
+      <!-- MODULO 1: GESTIÓN DEL MVP -->
+      <div class="card">
+        <div class="card-title">
+          <span>🎯 Módulo 1: Gestión del MVP (Reto UAB)</span>
+          <span style="font-size: 0.8rem; color: var(--primary-light);">API: /api/mvp</span>
+        </div>
+
+        <form id="form-mvp">
+          <div class="form-group">
+            <label>Nombre del Elemento / Tarea / Insumo</label>
+            <input type="text" id="mvp-nombre" placeholder="Ej: Canasta Familiar o Módulo Auth" required minlength="3">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Categoría / Rubro</label>
+              <input type="text" id="mvp-categoria" placeholder="Ej: Alimentos, Salud, Tarea" required>
+            </div>
+            <div class="form-group">
+              <label>Valor Numérico (≥ 0)</label>
+              <input type="number" id="mvp-valor" step="0.01" min="0" placeholder="Ej: 150.00" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Registrar en MVP (Capa Controller ➔ Service)</button>
+        </form>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Valor</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-mvp">
+              <!-- Carga dinámica vía API -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MODULO 2: GESTIÓN DE USUARIOS -->
+      <div class="card">
+        <div class="card-title">
+          <span>👥 Módulo 2: Gestión de Usuarios</span>
+          <span style="font-size: 0.8rem; color: var(--accent);">API: /api/usuarios</span>
+        </div>
+
+        <form id="form-usuarios">
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="usu-nombre" placeholder="Ej: Carlos Ramos" required minlength="3">
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico (Único)</label>
+            <input type="email" id="usu-email" placeholder="usuario@uab.edu.bo" required>
+          </div>
+          <div class="form-group">
+            <label>Rol Institucional</label>
+            <select id="usu-rol">
+              <option value="ESTUDIANTE">ESTUDIANTE</option>
+              <option value="DOCENTE">DOCENTE</option>
+              <option value="VOLUNTARIO">VOLUNTARIO</option>
+              <option value="COORDINADOR">COORDINADOR</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" style="background: var(--accent);">Registrar Usuario (Regla Unicidad)</button>
+        </form>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios">
+              <!-- Carga dinámica vía API -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // Willys_IA: Funciones de Frontend conectadas a los Endpoints REST de Flask
+
+    function mostrarToast(mensaje, esError = false) {
+      const toast = document.getElementById("toast");
+      toast.className = esError ? "toast-error" : "toast-success";
+      toast.textContent = mensaje;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3500);
+    }
+
+    async function cargarMvp() {
+      try {
+        const res = await fetch("/api/mvp");
+        const items = await res.json();
+        const tbody = document.getElementById("tabla-mvp");
+        tbody.innerHTML = "";
+
+        let sumaValor = 0;
+        items.forEach(it => {
+          sumaValor += Number(it.valor_numerico || 0);
+          const tr = document.createElement("tr");
+          const pillClass = "pill pill-" + it.estado.toLowerCase().replace("_", "");
+          tr.innerHTML = `
+            <td>#${it.id}</td>
+            <td><strong>${it.nombre}</strong></td>
+            <td>${it.categoria_rubro}</td>
+            <td>${Number(it.valor_numerico).toFixed(2)}</td>
+            <td><span class="${pillClass}">${it.estado}</span></td>
+            <td>
+              <select class="select-estado" onchange="cambiarEstadoMvp(${it.id}, this.value)">
+                <option value="">Cambiar...</option>
+                <option value="PENDIENTE">PENDIENTE</option>
+                <option value="EN_PROCESO">EN PROCESO</option>
+                <option value="ENTREGADO">ENTREGADO</option>
+                <option value="COMPLETADO">COMPLETADO</option>
+                <option value="CANCELADO">CANCELADO</option>
+              </select>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("kpi-total-items").textContent = items.length;
+        document.getElementById("kpi-total-valor").textContent = sumaValor.toFixed(2);
+      } catch (err) {
+        console.error("Error al cargar MVP:", err);
+      }
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const res = await fetch("/api/usuarios");
+        const usuarios = await res.json();
+        const tbody = document.getElementById("tabla-usuarios");
+        tbody.innerHTML = "";
+
+        usuarios.forEach(u => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>#${u.id}</td>
+            <td><strong>${u.nombre_completo}</strong></td>
+            <td>${u.email}</td>
+            <td><span class="pill pill-proceso">${u.rol}</span></td>
+            <td><span class="pill pill-activo">${u.estado}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("kpi-total-usuarios").textContent = usuarios.length;
+      } catch (err) {
+        console.error("Error al cargar usuarios:", err);
+      }
+    }
+
+    async function cambiarEstadoMvp(id, nuevoEstado) {
+      if (!nuevoEstado) return;
+      try {
+        const res = await fetch(`/api/mvp/${id}/estado`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          mostrarToast(`Elemento #${id} actualizado a ${nuevoEstado}`);
+          cargarMvp();
+        } else {
+          mostrarToast(data.error || "Error al actualizar estado", true);
+        }
+      } catch (err) {
+        mostrarToast("Fallo de conexión al servidor", true);
+      }
+    }
+
+    // Event Listeners para formularios
+    document.getElementById("form-mvp").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("mvp-nombre").value.trim();
+      const categoria = document.getElementById("mvp-categoria").value.trim();
+      const valor = parseFloat(document.getElementById("mvp-valor").value);
+
+      try {
+        const res = await fetch("/api/mvp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, categoria, valor })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          mostrarToast(`¡Elemento #${data.id} registrado con éxito!`);
+          document.getElementById("form-mvp").reset();
+          cargarMvp();
+        } else {
+          mostrarToast(data.error || "Error al registrar elemento", true);
+        }
+      } catch (err) {
+        mostrarToast("Fallo de conexión al servidor", true);
+      }
+    });
+
+    document.getElementById("form-usuarios").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("usu-nombre").value.trim();
+      const email = document.getElementById("usu-email").value.trim();
+      const rol = document.getElementById("usu-rol").value;
+
+      try {
+        const res = await fetch("/api/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, email, rol })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          mostrarToast(`¡Usuario #${data.id} (${data.rol}) registrado!`);
+          document.getElementById("form-usuarios").reset();
+          cargarUsuarios();
+        } else {
+          mostrarToast(data.error || "Error al registrar usuario", true);
+        }
+      } catch (err) {
+        mostrarToast("Fallo de conexión al servidor", true);
+      }
+    });
+
+    // Carga inicial al abrir la página
+    window.addEventListener("DOMContentLoaded", () => {
+      cargarMvp();
+      cargarUsuarios();
+    });
+  </script>
+</body>
+</html>
+

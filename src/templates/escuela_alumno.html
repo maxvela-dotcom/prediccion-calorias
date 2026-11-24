@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <title>Mi registro · Escuela de Fútbol</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+           color: #0f172a; background: #f8fafc; }
+    header { background: #0f766e; color: #fff; padding: 18px 22px;
+             display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 19px; }
+    header p { margin: 4px 0 0; font-size: 12px; opacity: .85; }
+    header a { color: #fff; font-size: 12px; font-weight: 700; text-decoration: none;
+               border: 1px solid rgba(255,255,255,.5); padding: 7px 11px; border-radius: 8px; }
+    main { max-width: 900px; margin: 0 auto; padding: 22px 16px 50px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 15px; margin: 0 0 12px; }
+    .perfil { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .perfil img { width: 140px; height: 140px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+    .datos div { margin: 5px 0; font-size: 14px; }
+    .datos strong { color: #0f766e; }
+    .badge { display: inline-block; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .badge.si { background: #d1fae5; color: #065f46; }
+    .badge.no { background: #fef3c7; color: #92400e; }
+    .badge.pago { background: #dbeafe; color: #1e40af; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .kpi { background: #f1f5f9; border-radius: 12px; padding: 13px; }
+    .kpi .label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+    .kpi .valor { font-size: 22px; font-weight: 800; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #e2e8f0; }
+    th { color: #64748b; font-size: 11px; text-transform: uppercase; }
+    .vacio { color: #64748b; padding: 18px; text-align: center; }
+    .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+             background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 9; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🎒 Mi registro de asistencias</h1>
+      <p>Solo lectura · conectado a la base compartida de la escuela</p>
+    </div>
+    <a href="/escuela/logout">Salir</a>
+  </header>
+
+  <main>
+    <section class="card" id="cardPerfil">
+      <h2>Mis datos</h2>
+      <div class="perfil">
+        <img id="miQR" alt="Código QR del alumno">
+        <div class="datos" id="misDatos">Cargando…</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Resumen del mes</h2>
+      <div class="kpis" id="misKpis"></div>
+    </section>
+
+    <section class="card">
+      <h2>Mi cobro</h2>
+      <div id="miCobro">Cargando…</div>
+    </section>
+
+    <section class="card">
+      <h2>Historial de entrenamientos</h2>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Categoría · sede</th><th>Registro</th></tr></thead>
+          <tbody id="miHistorial"><tr><td colspan="4" class="vacio">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script>
+    function esc(texto) {
+      return String(texto == null ? "" : texto)
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+    }
+    function aviso(mensaje) {
+      const el = document.getElementById("toast");
+      el.textContent = mensaje;
+      el.hidden = false;
+      setTimeout(() => { el.hidden = true; }, 3500);
+    }
+
+    async function cargar() {
+      try {
+        const respuesta = await fetch("/api/escuela/mi", { headers: { "Accept": "application/json" } });
+        if (respuesta.status === 401) { location.href = "/escuela/login"; return; }
+        const datos = await respuesta.json();
+        if (!respuesta.ok) throw new Error(datos.error || "No se pudo cargar tu registro.");
+
+        const e = datos.estudiante;
+        document.getElementById("miQR").src =
+          "/api/escuela/estudiantes/" + e.id + "/qr.svg";
+        document.getElementById("misDatos").innerHTML = `
+          <div><strong>${esc(e.nombre)}</strong></div>
+          <div>${esc(e.categoria)} · ${esc(e.sede)}</div>
+          <div>Código QR: <strong>${esc(e.qr_token)}</strong></div>
+          <div>${e.becado ? '<span class="badge pago">BECADO</span>' : ""}</div>`;
+
+        const r = datos.resumen;
+        document.getElementById("misKpis").innerHTML = `
+          <div class="kpi"><div class="label">Entrenamientos</div><div class="valor">${r.sesiones}</div></div>
+          <div class="kpi"><div class="label">Asistencias</div><div class="valor">${r.asistencias}</div></div>
+          <div class="kpi"><div class="label">Faltas</div><div class="valor">${r.faltas}</div></div>`;
+
+        const c = datos.cobro;
+        document.getElementById("miCobro").innerHTML = `
+          <div><strong>Periodo ${esc(datos.periodo)}</strong></div>
+          <div>Motivo: ${esc(c.motivo.replaceAll("_", " ").toLowerCase())}</div>
+          <div>Monto: <strong>${c.monto.toFixed(2)} Bs</strong></div>
+          <div>Estado: <span class="badge pago">${esc(c.estado_pago)}</span></div>`;
+
+        const cuerpo = document.getElementById("miHistorial");
+        cuerpo.innerHTML = datos.historial.length
+          ? datos.historial.map((h) => `
+              <tr>
+                <td>${esc(h.fecha)}</td>
+                <td>${esc(h.hora)}</td>
+                <td>${esc(h.categoria)} · ${esc(h.sede)}</td>
+                <td><span class="badge ${h.asistio ? "si" : "no"}">${
+                  h.asistio ? "PRESENTE · " + esc(h.metodo) : "FALTA"
+                }</span></td>
+              </tr>`).join("")
+          : '<tr><td colspan="4" class="vacio">Todavía no hay entrenamientos en este mes.</td></tr>';
+      } catch (error) {
+        aviso(error.message);
+      }
+    }
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    cargar();
+  </script>
+</body>
+</html>

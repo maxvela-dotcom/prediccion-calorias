@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <title>Primer arranque · Escuela de Fútbol</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px;
+           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+           background: linear-gradient(160deg, #ecfdf5, #f8fafc 55%, #e2e8f0); color: #0f172a; }
+    .caja { width: min(460px, 100%); background: #fff; border: 1px solid #e2e8f0;
+            border-radius: 20px; padding: 30px; box-shadow: 0 18px 50px rgba(15,23,42,.10); }
+    .marca { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .marca .logo { width: 46px; height: 46px; display: grid; place-items: center; font-size: 26px;
+                   background: #0f766e; border-radius: 14px; }
+    h1 { font-size: 20px; margin: 0; }
+    .marca p { margin: 3px 0 0; font-size: 12px; color: #64748b; }
+    .nota { font-size: 12.5px; color: #475569; line-height: 1.5; background: #f0fdfa;
+            border: 1px solid #ccfbf1; border-radius: 12px; padding: 12px 14px; margin: 0 0 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 14px 0 6px; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px;
+            font: inherit; outline: none; }
+    input:focus { border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,.12); }
+    button { width: 100%; margin-top: 20px; padding: 13px; border: 0; border-radius: 10px;
+             background: #0f766e; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+    button:hover { background: #115e59; }
+    .error { margin-top: 14px; padding: 10px 12px; border-radius: 10px; font-size: 13px;
+             background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .pie { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.5; }
+    .pie a { color: #0f766e; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="caja">
+    <div class="marca">
+      <div class="logo">⚽</div>
+      <div>
+        <h1>Primer arranque</h1>
+        <p>Escuela de Fútbol · base de datos vacía</p>
+      </div>
+    </div>
+
+    <p class="nota">
+      La base está en cero. Crea la cuenta de <strong>administrador</strong>.
+      También se crearán las sedes <strong>Sede Central</strong> y <strong>Sede Norte</strong>,
+      y las categorías <strong>Sub-8 (400 Bs)</strong>, <strong>Sub-15 (500 Bs)</strong>
+      y <strong>Sub-18 (600 Bs)</strong>. Podrás cambiarlas después.
+    </p>
+
+    <form method="post" action="/escuela/setup">
+      <label for="nombre">Nombre completo</label>
+      <input id="nombre" name="nombre" autocomplete="name" required minlength="3"
+             value="{{ valores.nombre if valores else '' }}" placeholder="Ej. Ana Morales">
+
+      <label for="usuario">Usuario</label>
+      <input id="usuario" name="usuario" autocomplete="username" required minlength="3"
+             pattern="[a-zA-Z0-9._-]{3,30}"
+             value="{{ valores.usuario if valores else '' }}" placeholder="Ej. ana.morales">
+
+      <label for="clave">Contraseña (mínimo 6 caracteres)</label>
+      <input id="clave" name="clave" type="password" autocomplete="new-password" required minlength="6">
+
+      <label for="clave2">Repetir contraseña</label>
+      <input id="clave2" name="clave2" type="password" autocomplete="new-password" required minlength="6">
+
+      <button type="submit">Crear administrador y entrar</button>
+    </form>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <p class="pie">
+      Después podrás crear cuentas de entrenadores y alumnos desde
+      <strong>Altas y cuentas</strong>. Si ya creaste el administrador,
+      <a href="/escuela/login">inicia sesión aquí</a>.
+    </p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar contraseña · Predicción de Calorías</title>
+  <style>
+    body{font-family:Segoe UI,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:28px;max-width:440px;width:100%}
+    h1{margin:0 0 6px;font-size:1.5rem} p.sub{color:#94a3b8;margin:0 0 18px}
+    label{display:block;font-size:.85rem;color:#94a3b8;margin:10px 0 4px}
+    input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fff}
+    button{width:100%;margin-top:16px;padding:11px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer}
+    .msg{margin-top:12px;font-size:.9rem;color:#f87171;min-height:1.2em}
+    .ok{color:#34d399}
+    a{color:#60a5fa}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Recuperar contraseña</h1>
+    <p class="sub">Ingresa tu correo y generaremos un enlace de recuperación.</p>
+    <form method="post" action="/recuperar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Correo electrónico</label>
+      <input type="email" name="email" required>
+      <button type="submit">Generar enlace</button>
+    </form>
+    <div class="msg {{ 'ok' if mensaje else '' }}">{{ error or mensaje or '' }}</div>
+    <p><a href="/login">Volver al inicio de sesión</a></p>
+  </div>
+</body>
+</html>
